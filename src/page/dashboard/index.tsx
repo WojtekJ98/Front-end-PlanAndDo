@@ -1,19 +1,18 @@
-import { Link } from "react-router-dom";
-import { useAuth } from "../../context/AuthProvider";
+import Header from "../../components/Header";
+import AsideBar from "../../components/AsideBar";
+import BoardView from "../../components/BoardView";
 
 export default function Dashboard() {
-  const { logout } = useAuth();
   return (
     <>
-      <div>
-        <div className="bg -z-10"></div>
-        <header className="w-full  border-b-1 border-gray-500 px-4 lg:px-20 py-4 text-white flex justify-between items-center  text-2xl ">
-          <Link to="/">
-            <h2>ToDo Logo</h2>
-          </Link>
-          <button onClick={logout}>Logout</button>
-        </header>
-        <h1 className="text-white">Welcome in ToDo APP</h1>
+      <div className="w-full  h-screen max-h-screen overflow-hidden ">
+        <Header />
+        <main className="w-full h-full ">
+          <div className="h-full w-full grid grid-cols-[1fr_4fr]  ">
+            <AsideBar />
+            <BoardView />
+          </div>
+        </main>
       </div>
     </>
   );
