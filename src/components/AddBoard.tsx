@@ -1,7 +1,8 @@
-import { Field, FieldArray, Form, Formik } from "formik";
+import { ErrorMessage, Field, FieldArray, Form, Formik } from "formik";
 import { IoIosCloseCircleOutline } from "react-icons/io";
 import { IoMdAddCircleOutline } from "react-icons/io";
 import { Column } from "../types";
+import * as Yup from "yup";
 
 interface AddBoardFormValues {
   boardTitle: string;
@@ -12,6 +13,10 @@ interface AddBoardProps {
   onSubmit: (values: AddBoardFormValues) => void;
   initialValues?: AddBoardFormValues;
 }
+
+const validationValues = Yup.object({
+  boardTitle: Yup.string().required("Board Name is required"),
+});
 
 export default function AddBoard({
   onSubmit,
@@ -26,6 +31,7 @@ export default function AddBoard({
         {initialValues.boardTitle ? "Edit Board" : "Add new board"}
       </h1>
       <Formik
+        validationSchema={validationValues}
         initialValues={initialValues}
         onSubmit={(values) => {
           onSubmit(values);
@@ -41,7 +47,13 @@ export default function AddBoard({
                 name="boardTitle"
                 className="bg-gray-700 px-3 py-1 rounded-md border-[1px] border-seccondColor outline outline-1 outline-seccondColor placeholder:text-white focus:outline-2 focus:-outline-offset-2 sm:text-sm/6"
               />
+              <ErrorMessage
+                name="boardTitle"
+                component="div"
+                className="text-red-500"
+              />
             </div>
+
             <div className="space-y-2 flex flex-col pb-2  pt-4">
               <label className="text-lg font-semibold">Columns</label>
               <FieldArray name="columns">

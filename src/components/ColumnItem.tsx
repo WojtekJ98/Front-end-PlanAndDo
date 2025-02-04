@@ -10,6 +10,7 @@ import { IoMdAdd } from "react-icons/io";
 import { MdBackHand } from "react-icons/md";
 import { CiBookmarkCheck } from "react-icons/ci";
 import TaskDetails from "./TaskDetails";
+import AddTaskHandler from "./AddTask";
 
 interface Props {
   column: Column;
@@ -22,6 +23,7 @@ export default function ColumnItem({ column }: Props) {
   const [editedTitle, setEditedTitle] = useState("");
   const [isDeleteModalOpen, setDeleteModalOpen] = useState(false);
   const [isTaskModalOpen, setTaskModalOpen] = useState(false);
+  const [isModalOpen, setModalOpen] = useState(false);
 
   const dispatch = useDispatch();
 
@@ -36,6 +38,9 @@ export default function ColumnItem({ column }: Props) {
   const handleTaskClick = (task: Task) => {
     setSelectTask(task);
     setTaskModalOpen(true); // Open TaskDetails modal
+  };
+  const handleAddTask = () => {
+    setModalOpen(true);
   };
 
   return (
@@ -113,7 +118,9 @@ export default function ColumnItem({ column }: Props) {
               </span>
             </div>
             <div className="relative group">
-              <button className="hover:text-seccondColor duration-200">
+              <button
+                onClick={() => handleAddTask()}
+                className="hover:text-seccondColor duration-200">
                 <IoMdAdd />
               </button>{" "}
               <span className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-1 hidden group-hover:block text-xs bg-gray-700 text-white px-2 py-1 rounded shadow-lg text-center">
@@ -143,7 +150,30 @@ export default function ColumnItem({ column }: Props) {
         />
       </Modal>
       <Modal isOpen={isTaskModalOpen} onClose={() => setTaskModalOpen(false)}>
-        {selectTask && <TaskDetails task={selectTask} columnId={column.id} />}
+        {selectTask && (
+          <TaskDetails
+            close={() => {
+              setTaskModalOpen(false);
+            }}
+            task={selectTask}
+            columnId={column.id}
+          />
+        )}
+      </Modal>{" "}
+      <Modal isOpen={isModalOpen} onClose={() => setModalOpen(false)}>
+        <AddTaskHandler
+          onClose={() => setModalOpen(false)}
+          initialValues={{
+            id: crypto.randomUUID(),
+            title: "",
+            description: "",
+            deadline: null,
+            subTasks: [{ id: crypto.randomUUID(), title: "", done: false }],
+            columnId: column.id,
+            status: "todo",
+            piority: "low",
+          }}
+        />
       </Modal>
     </>
   );

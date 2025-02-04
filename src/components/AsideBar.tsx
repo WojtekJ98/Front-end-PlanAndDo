@@ -12,14 +12,16 @@ import { RootState } from "../redux/store";
 import { FaRegEdit } from "react-icons/fa";
 import { Board } from "../types";
 import DeleteModal from "./DeleteModal";
+import { FaOutdent, FaIndent } from "react-icons/fa";
 
-export default function AsideBar() {
+export default function AsideBar({ isHidden, setIsHidden }) {
   const [isModalOpen, setModalOpen] = useState(false);
   const [isDeleteModalOpen, setDeleteModalOpen] = useState(false);
   const [selectedBoard, setSelecteBoard] = useState<Board | null>(null);
   const [isPopupOpen, setIsPopupOpen] = useState<string | null>(null);
   const [isEditMode, setEditMode] = useState(false);
   const [editBoardData, setEditBoardData] = useState<Board | null>(null);
+  // const [isHidden, setIsHidden] = useState(false);
 
   const dispatch = useDispatch();
 
@@ -59,11 +61,36 @@ export default function AsideBar() {
   console.log(boards);
 
   return (
-    <aside className="w-full h-full border-r-[1px] py-4 pt-8 border-gray-500  relative pr-2">
+    <aside
+      className={`h-[91vh] border-r-[1px] py-4 pt-8 border-gray-500  relative  min-w-[250px] w-[250px]  transition-all duration-300  ${
+        isHidden ? "-left-[250px]" : "left-0"
+      }`}>
       <p className="text-gray-400 uppercase text-sm absolute top-1 left-2 ">
         All Boards ({boards.length})
       </p>
-      <div className="flex flex-col  py-2 pb-6 w-full ">
+      <button
+        onClick={() => setIsHidden(!isHidden)}
+        className="text-gray-400 uppercase text-sm absolute top-1 right-0 bg-seccondColor px-2 py-1 rounded-l-full transition-all duration-300">
+        <FaOutdent className="text-white text-lg" />
+      </button>
+      {isHidden ? (
+        <button
+          onClick={() => setIsHidden(!isHidden)}
+          className="
+          text-gray-400
+          uppercase
+          text-sm
+          absolute
+          top-1
+          -right-8
+          bg-seccondColor
+          px-2
+          py-1
+          rounded-r-full   transition-all  duration-300">
+          <FaIndent className="text-white text-lg" />
+        </button>
+      ) : null}
+      <div className="flex flex-col  py-2 pb-6 w-full pr-2  ">
         {boards.length > 0 ? (
           <ul className="space-y-2">
             {boards.map((board) => (

@@ -1,5 +1,5 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { Board, BoardState, Column } from "../../types";
+import { Board, BoardState, Column, SubTasks, Task } from "../../types";
 
 const initialState: BoardState = {
   boards: [],
@@ -110,10 +110,52 @@ const boardSlice = createSlice({
         ...updatedTask,
       };
     },
+    deleteTask: (state, action) => {
+      state.boards.find((item: Board) =>
+        item.id === state.activeBoard
+          ? item.columns.find((col: Column) =>
+              col.id === action.payload.columnId
+                ? col.tasks.find((t) => t.id === action.payload.taskId)
+                  ? (col.tasks = col.tasks.filter(
+                      (tas) => tas.id !== action.payload.taskId
+                    ))
+                  : null
+                : null
+            )
+          : null
+      );
+      console.log(
+        "Deleted column with ID:",
+        action.payload.columnId,
+        "task",
+        action.payload.taskId
+      );
+    },
+    updateSubtask: (state, action) => {
+      state.boards.find((item: Board) =>
+        item.id === state.activeBoard
+          ? item.columns.find((col: Column) =>
+              col.id === action.payload.columnId
+                ? col.tasks.find((t: Task) =>
+                    t.id === action.payload.taskId
+                      ? t.subTasks.find((st: SubTasks) =>
+                          st.id === action.payload.subTaskId
+                            ? (st.done = !st.done)
+                            : null
+                        )
+                      : null
+                  )
+                : null
+            )
+          : null
+      );
+    },
   },
 });
 
 export const {
+  updateSubtask,
+  deleteTask,
   addBoard,
   editTask,
   setActiveBoard,

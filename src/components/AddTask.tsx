@@ -1,4 +1,4 @@
-import { Field, FieldArray, Form, Formik } from "formik";
+import { ErrorMessage, Field, FieldArray, Form, Formik } from "formik";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { SubTasks, Task } from "../types";
@@ -7,26 +7,33 @@ import { useSelector } from "react-redux";
 import { selectActiveBoardColumns } from "../redux/selectors/selectActiveBoardColumns";
 import { useDispatch } from "react-redux";
 import { addTask } from "../redux/slices/boardSlice";
+import * as Yup from "yup";
 
 // interface DateValues {
 //   deadline: Date | null;
 // }
 
 export interface AddTaskFormValues {
-  id: string;
-  title: string;
-  description: string;
-  deadline: Date | null;
-  subTasks: SubTasks[];
-  columnId: string;
-  status: string;
-  piority: string;
+  id?: string;
+  title?: string;
+  description?: string;
+  deadline?: Date | null;
+  subTasks?: SubTasks[];
+  columnId?: string;
+  status?: string;
+  piority?: string;
 }
 interface Props {
-  handleUpdateTask: (values: AddTaskFormValues) => void;
-  onClose: () => void;
+  handleUpdateTask?: (values: AddTaskFormValues) => void;
+  onClose?: () => void;
   initialValues?: AddTaskFormValues;
 }
+
+const validationValues = Yup.object({
+  title: Yup.string().required("Task name is required"),
+  description: Yup.string().required("Task description is required"),
+  columnId: Yup.string().required("You must select a column"),
+});
 
 export default function AddTaskHandler({
   handleUpdateTask,
@@ -36,7 +43,7 @@ export default function AddTaskHandler({
     title: "",
     description: "",
     deadline: null,
-    subTasks: [{ id: crypto.randomUUID(), title: "" }],
+    subTasks: [{ id: crypto.randomUUID(), title: "", done: false }],
     columnId: "",
     status: "todo",
     piority: "low",
@@ -91,7 +98,10 @@ export default function AddTaskHandler({
           {initialValues.title ? "Edit Task" : "Add  Task"}
         </h1>
         <div className="overflow-y-auto h-[30rem] pr-2 [&::-webkit-scrollbar]:w-1 [&::-webkit-scrollbar-track]:bg-gray-600 [&::-webkit-scrollbar-thumb]:bg-gray-800">
-          <Formik initialValues={initialValues} onSubmit={handleFormSubmit}>
+          <Formik
+            validationSchema={validationValues}
+            initialValues={initialValues}
+            onSubmit={handleFormSubmit}>
             {({ setFieldValue, values }) => (
               <Form>
                 <div className="space-y-2 flex flex-col pb-2 ">
@@ -103,16 +113,25 @@ export default function AddTaskHandler({
                     name="title"
                     className="bg-gray-700 px-3 py-1 rounded-md border-[1px] border-seccondColor outline outline-1 outline-seccondColor placeholder:text-white focus:outline-2 focus:-outline-offset-2 sm:text-sm/6"
                   />
+                  <ErrorMessage
+                    name="title"
+                    component="div"
+                    className="text-red-500"
+                  />
                 </div>
                 <div className="space-y-2 flex flex-col pb-2 pt-4 ">
                   <label className="text-lg font-semibold">Description</label>
                   <Field
                     enableReinitialize
-                    required
                     as="textarea"
                     placeholder="e.g. Add a Logo and the Nav"
                     name="description"
                     className="bg-gray-700 px-3 py-1 rounded-md border-[1px] border-seccondColor outline outline-1 outline-seccondColor placeholder:text-white focus:outline-2 focus:-outline-offset-2 sm:text-sm/6"
+                  />
+                  <ErrorMessage
+                    name="description"
+                    component="div"
+                    className="text-red-500"
                   />
                 </div>
                 <div className="flex  items-center justify-between gap-2 pb-2 pt-4 ">
@@ -218,7 +237,12 @@ export default function AddTaskHandler({
                           {column.title}
                         </option>
                       ))}
-                    </Field>
+                    </Field>{" "}
+                    <ErrorMessage
+                      name="columnId"
+                      component="div"
+                      className="text-red-500"
+                    />
                   </div>
 
                   <button

@@ -9,7 +9,7 @@ html {
 }
 
 body {
-  @apply relative min-h-screen w-full bg-gray-900;
+  @apply h-full w-full bg-gray-900;
 }
 
 .bg {

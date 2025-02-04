@@ -7,6 +7,9 @@ interface Props {
 }
 
 export default function TaskItem({ task, onClick }: Props) {
+  const completedSubtasks = task.subTasks.filter((st) => st.done).length;
+  const totalSubtasks = task.subTasks.length;
+
   return (
     <>
       <div
@@ -18,15 +21,18 @@ export default function TaskItem({ task, onClick }: Props) {
             {task.title}
           </h2>
         </div>
-        <div className="p-2">
-          <p className="text-sm">{task.description}</p>
+        <div className="p-2 text-wrap ">
+          <p className="text-sm truncate overflow-hidden whitespace-nowrap">
+            {task.description}
+          </p>
         </div>
-        <div className="flex flex-col">
+        <div className="flex items-center gap-4 py-2">
           <span className="text-sm font-semibold text-seccondColor">
             SubTask
           </span>
           <span className="text-sm font-semibold text-seccondColor">
-            {task.subTasks.length}
+            ({completedSubtasks} of {""}
+            {totalSubtasks})
           </span>
         </div>{" "}
         <div className="flex justify-between items-start text-sm  border-[1px] p-1 rounded-lg border-slate-700 shadow-sm shadow-slate-700">

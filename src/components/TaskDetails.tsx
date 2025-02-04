@@ -1,22 +1,31 @@
-import { Column, Task } from "../types";
+import { Board, Column, SubTasks, Task } from "../types";
 import dayjs from "dayjs";
 import { useState } from "react";
 import { FaRegEdit } from "react-icons/fa";
+import { FaRegTrashCan } from "react-icons/fa6";
 import Modal from "./Modal";
 import AddTaskHandler from "./AddTask";
 import { useDispatch } from "react-redux";
-import { editTask } from "../redux/slices/boardSlice";
-
+import { editTask, updateSubtask } from "../redux/slices/boardSlice";
+import DeleteModal from "./DeleteModal";
+import { useSelector } from "react-redux";
+import { RootState } from "../redux/store";
 interface Props {
   task: Task;
   columnId: string;
+  close: () => void;
 }
 
-export default function TaskDetails({ task, columnId }: Props) {
+export default function TaskDetails({
+  task: initalTask,
+  columnId,
+  close,
+}: Props) {
   const [isModalOpen, setModalOpen] = useState(false);
-  //   const [isDeleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [isDeleteModalOpen, setDeleteModalOpen] = useState(false);
   const [isEditMode, setEditMode] = useState(false);
   const [editTaskData, setEditTaskData] = useState<Task | null>(null);
+  const [selectTask, setSelectTask] = useState<Task>();
 
   const dispatch = useDispatch();
 
@@ -35,6 +44,8 @@ export default function TaskDetails({ task, columnId }: Props) {
           },
         })
       );
+      close();
+
       setModalOpen(false);
       setEditMode(false);
     }
@@ -44,12 +55,34 @@ export default function TaskDetails({ task, columnId }: Props) {
     setEditTaskData(task);
     setModalOpen(true);
   };
+  const handleDeleteTask = (task: Task) => {
+    setSelectTask(task);
+    setDeleteModalOpen(true);
+  };
+  const handleUpdateSubtask = (subTaskId: string) => {
+    dispatch(
+      updateSubtask({
+        columnId: columnId,
+        taskId: task.id,
+        subTaskId: subTaskId,
+      })
+    );
+  };
 
-  console.log(task.deadline);
+  const task = useSelector((state: RootState) => {
+    const activeBoard = state.boards.boards.find(
+      (board: Board) => board.id === state.boards.activeBoard
+    );
+    if (!activeBoard) return initalTask;
+    const column = activeBoard.columns.find((col) => col.id === columnId);
+    if (!column) return initalTask;
+    const updatedTask = column.tasks.find((t) => t.id === initalTask.id);
+    return updatedTask || initalTask;
+  });
 
   return (
     <>
-      <div className="">
+      <div className="overflow-y-auto h-[30rem] pr-2 [&::-webkit-scrollbar]:w-1 [&::-webkit-scrollbar-track]:bg-gray-600 [&::-webkit-scrollbar-thumb]:bg-gray-800">
         <div className="flex justify-between items-center">
           <div className=" flex flex-col pb-2">
             <h1 className=" opacity-65 text-slate-900 font-semibold text-sm ">
@@ -70,7 +103,7 @@ export default function TaskDetails({ task, columnId }: Props) {
             </p>
           </div>
         </div>
-        <div className="text-sm flex-flex-col">
+        <div className="text-sm flex-flex-col break-words">
           <p className=" opacity-65 text-slate-900 font-semibold text-sm">
             Description
           </p>
@@ -81,8 +114,18 @@ export default function TaskDetails({ task, columnId }: Props) {
 
           <div className="  ">
             {task.subTasks.map((st) => (
-              <div className="my-1 bg-slate-800 p-2" key={st.id}>
-                {st.title}
+              <div
+                className="my-1 bg-slate-800 p-2 flex items-center gap-4"
+                key={st.id}>
+                <input
+                  type="checkbox"
+                  onChange={() => handleUpdateSubtask(st.id)}
+                  checked={st.done}
+                  className="w-3 h-3"
+                />
+                <p className={st.done ? "line-through text-gray-500" : ""}>
+                  {st.title}
+                </p>
               </div>
             ))}
           </div>
@@ -111,7 +154,12 @@ export default function TaskDetails({ task, columnId }: Props) {
               <span className="text-center">{task.status}</span>
             </div>
           </div>
-          <div className=" pt-4 ">
+          <div className=" pt-4  flex gap-2">
+            <button
+              onClick={() => handleDeleteTask(task)}
+              className="px-3 py-1 bg-slate-500 rounded-lg flex items-center gap-2 hover:bg-red-500 duration-200">
+              Delete <FaRegTrashCan />
+            </button>
             <button
               onClick={() => handleEditTask(task)}
               className="px-3 py-1 bg-slate-500 rounded-lg flex items-center gap-2 hover:bg-seccondColor duration-200">
@@ -136,6 +184,17 @@ export default function TaskDetails({ task, columnId }: Props) {
                 }
               : undefined
           }
+        />
+      </Modal>
+      <Modal
+        isOpen={isDeleteModalOpen}
+        onClose={() => setDeleteModalOpen(false)}>
+        <DeleteModal
+          type={"task"}
+          item={selectTask}
+          setCloseModal={setDeleteModalOpen}
+          columnId={columnId}
+          close={close}
         />
       </Modal>
     </>

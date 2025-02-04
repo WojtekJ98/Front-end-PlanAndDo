@@ -1,7 +1,25 @@
 import { useDispatch } from "react-redux";
-import { deleteBoard, deleteColumn } from "../redux/slices/boardSlice";
+import {
+  deleteBoard,
+  deleteColumn,
+  deleteTask,
+} from "../redux/slices/boardSlice";
+import { Board, Column, Task } from "../types";
+interface Props {
+  item: Board | Column | Task;
+  type: string;
+  columnId: string;
+  setCloseModal: () => void;
+  close?: () => void;
+}
 
-export default function DeleteModal({ item, type, setCloseModal }) {
+export default function DeleteModal({
+  item,
+  type,
+  columnId,
+  setCloseModal,
+  close,
+}: Props) {
   const dispatch = useDispatch();
 
   const handleDeleteBoard = (id: string) => {
@@ -10,8 +28,12 @@ export default function DeleteModal({ item, type, setCloseModal }) {
       dispatch(deleteBoard(id));
     } else if (type === "column") {
       dispatch(deleteColumn(item));
+    } else if (type === "task") {
+      dispatch(deleteTask({ columnId: columnId, taskId: id }));
     }
-    console.log(id);
+    if (close) {
+      close();
+    }
     setCloseModal(false);
   };
 

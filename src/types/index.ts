@@ -28,4 +28,5 @@ export interface Task {
 export interface SubTasks {
   id: string;
   title: string;
+  done: boolean;
 }
