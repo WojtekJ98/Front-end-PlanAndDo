@@ -4,13 +4,28 @@ import TaskItem from "./TaskItem";
 import Modal from "./Modal";
 import { useDispatch } from "react-redux";
 import DeleteModal from "./DeleteModal";
-import { editColumnTitle } from "../redux/slices/boardSlice";
+import {
+  editColumnTitle,
+  editTask,
+  reorderTask,
+} from "../redux/slices/boardSlice";
 import { FaPencil, FaRegTrashCan } from "react-icons/fa6";
 import { IoMdAdd } from "react-icons/io";
 import { MdBackHand } from "react-icons/md";
 import { CiBookmarkCheck } from "react-icons/ci";
 import TaskDetails from "./TaskDetails";
 import AddTaskHandler from "./AddTask";
+import { useSortable, SortableContext, arrayMove } from "@dnd-kit/sortable";
+import {
+  DndContext,
+  KeyboardSensor,
+  MouseSensor,
+  TouchSensor,
+  closestCorners,
+  useSensor,
+  useSensors,
+} from "@dnd-kit/core";
+import { CSS } from "@dnd-kit/utilities";
 
 interface Props {
   column: Column;
@@ -37,16 +52,68 @@ export default function ColumnItem({ column }: Props) {
   };
   const handleTaskClick = (task: Task) => {
     setSelectTask(task);
-    setTaskModalOpen(true); // Open TaskDetails modal
+    setTaskModalOpen(true);
   };
   const handleAddTask = () => {
     setModalOpen(true);
   };
 
+  const { attributes, listeners, setNodeRef, transform, transition } =
+    useSortable({
+      id: column.id,
+    });
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  };
+
+  const handleDragEnd = (event) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+
+    const oldIndex = column.tasks.findIndex((task) => task.id === active.id);
+    const newIndex = column.tasks.findIndex((task) => task.id === over.id);
+    if (oldIndex !== -1 && newIndex !== -1) {
+      const updatedTasks = arrayMove([...column.tasks], oldIndex, newIndex);
+
+      dispatch(
+        reorderTask({
+          columnId: column.id,
+          taskId: active.id,
+          updatedTask: { tasks: updatedTasks },
+        })
+      );
+    }
+  };
+  const sensors = useSensors(
+    useSensor(MouseSensor, {
+      activationConstraint: {
+        delay: 100,
+        tolerance: 5,
+      },
+      shouldCancelStart: (event) => {
+        return event.target.tagName === "BUTTON";
+      },
+    }),
+    useSensor(TouchSensor, {
+      activationConstraint: {
+        delay: 100,
+        tolerance: 5,
+      },
+      shouldCancelStart: (event) => {
+        return event.target.tagName === "BUTTON";
+      },
+    }),
+    useSensor(KeyboardSensor)
+  );
+
   return (
     <>
-      <div key={column.id} className="h-full min-w-[250px] ">
-        <div className="flex justify-between items-center">
+      <div
+        ref={setNodeRef}
+        style={style}
+        className="h-full  min-w-[260px] lg:min-w-[280px]">
+        <div className="flex justify-between items-center ">
           {isEditColumn && selectColumn?.id === column.id ? (
             <input
               className="bg-slate-900 border-[1px] border-seccondColor mr-4 rounded-md text-white px-2 w-24 py-1  outline outline-1 outline-seccondColor  focus:outline-2 focus:-outline-offset-2 sm:text-sm/6"
@@ -55,9 +122,11 @@ export default function ColumnItem({ column }: Props) {
               onChange={(e) => editColumnChange(e)}
             />
           ) : (
-            <h3 className="space-y-2 text-lg  font-semibold text-gray-400">
-              {column.title}
-            </h3>
+            <div {...listeners} {...attributes} className="cursor-move">
+              <h3 className="space-y-2 text-lg  font-semibold text-gray-400">
+                {column.title}
+              </h3>
+            </div>
           )}
 
           <div className="flex justify-center items-center gap-3 text-sm">
@@ -66,22 +135,26 @@ export default function ColumnItem({ column }: Props) {
                 <div className="flex items-center justify-center gap-2 text-sm">
                   <div className="relative group">
                     <button
-                      onClick={editColumnHandler}
+                      onClick={() => {
+                        editColumnHandler();
+                      }}
                       className="hover:text-green-500 duration-200 ">
                       <CiBookmarkCheck />
                     </button>
                     <span className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-1 hidden group-hover:block text-xs bg-gray-700 text-white px-2 py-1 rounded shadow-lg text-center">
-                      Save changes{" "}
+                      Save changes
                     </span>
                   </div>
                   <div className="relative group">
                     <button
-                      onClick={() => setIsEditColumn(false)}
+                      onClick={() => {
+                        setIsEditColumn(false);
+                      }}
                       className="hover:text-red-500 duration-200 ">
                       <MdBackHand />
                     </button>
                     <span className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-1 hidden group-hover:block text-xs bg-gray-700 text-white px-2 py-1 rounded shadow-lg text-center">
-                      No change{" "}
+                      No change
                     </span>
                   </div>
                 </div>
@@ -119,26 +192,36 @@ export default function ColumnItem({ column }: Props) {
             </div>
             <div className="relative group">
               <button
-                onClick={() => handleAddTask()}
+                onClick={() => {
+                  handleAddTask();
+                }}
                 className="hover:text-seccondColor duration-200">
                 <IoMdAdd />
-              </button>{" "}
+              </button>
               <span className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-1 hidden group-hover:block text-xs bg-gray-700 text-white px-2 py-1 rounded shadow-lg text-center">
                 Add Task
               </span>
             </div>
           </div>
         </div>
-        <div className="bg-gray-800 w-full rounded-lg p-2 flex-1 overflow-y-auto max-h-[500px] [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-slate-500 [&::-webkit-scrollbar-thumb]:bg-slate-700 max-w-64">
-          {column?.tasks?.map((task) => (
-            <TaskItem
-              task={task}
-              onClick={() => {
-                handleTaskClick(task);
-              }}
-            />
-          ))}
-        </div>
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCorners}
+          onDragEnd={handleDragEnd}>
+          <SortableContext items={(column?.tasks || []).map((task) => task.id)}>
+            <div className="bg-gray-800 overflow-x-hidden  w-full  lg:min-w-[280px] rounded-lg p-2 px-4 flex-1 overflow-y-auto max-h-[500px] [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-slate-500 [&::-webkit-scrollbar-thumb]:bg-slate-700 max-w-64">
+              {column?.tasks?.map((task) => (
+                <TaskItem
+                  key={task.id}
+                  task={task}
+                  onClick={() => {
+                    handleTaskClick(task);
+                  }}
+                />
+              ))}
+            </div>
+          </SortableContext>
+        </DndContext>
       </div>
       <Modal
         isOpen={isDeleteModalOpen}
@@ -159,7 +242,7 @@ export default function ColumnItem({ column }: Props) {
             columnId={column.id}
           />
         )}
-      </Modal>{" "}
+      </Modal>
       <Modal isOpen={isModalOpen} onClose={() => setModalOpen(false)}>
         <AddTaskHandler
           onClose={() => setModalOpen(false)}

@@ -110,6 +110,20 @@ const boardSlice = createSlice({
         ...updatedTask,
       };
     },
+    reorderTask: (state, action) => {
+      const { columnId, updatedTask } = action.payload;
+
+      const activeBoard = state.boards.find(
+        (board) => board.id === state.activeBoard
+      );
+
+      if (!activeBoard) return;
+
+      const column = activeBoard.columns.find((col) => col.id === columnId);
+      if (!column) return;
+
+      column.tasks = updatedTask.tasks;
+    },
     deleteTask: (state, action) => {
       state.boards.find((item: Board) =>
         item.id === state.activeBoard
@@ -154,6 +168,7 @@ const boardSlice = createSlice({
 });
 
 export const {
+  reorderTask,
   updateSubtask,
   deleteTask,
   addBoard,
