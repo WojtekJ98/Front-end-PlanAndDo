@@ -1,15 +1,18 @@
-import { useDispatch } from "react-redux";
 import {
-  deleteBoard,
-  deleteColumn,
-  deleteTask,
+  useDeleteBoardMutation,
+  useDeleteColumnMutation,
+  useDeleteTaskMutation,
 } from "../redux/slices/boardSlice";
 import { Board, Column, Task } from "../types";
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+
 interface Props {
   item: Board | Column | Task;
   type: string;
-  columnId: string;
-  setCloseModal: () => void;
+  columnId?: string;
+  boardId?: string;
+  setCloseModal: (value: boolean) => void;
   close?: () => void;
 }
 
@@ -17,24 +20,46 @@ export default function DeleteModal({
   item,
   type,
   columnId,
+  boardId,
   setCloseModal,
   close,
 }: Props) {
-  const dispatch = useDispatch();
+  const [deleteBoard] = useDeleteBoardMutation();
+  const [deleteColumn] = useDeleteColumnMutation();
+  const [deleteTask] = useDeleteTaskMutation();
 
-  const handleDeleteBoard = (id: string) => {
-    console.log(`Deleting ${type}:`, id);
-    if (type === "board") {
-      dispatch(deleteBoard(id));
-    } else if (type === "column") {
-      dispatch(deleteColumn(item));
-    } else if (type === "task") {
-      dispatch(deleteTask({ columnId: columnId, taskId: id }));
+  const handleDelete = async () => {
+    if (!item._id) {
+      toast.error("ID is required to delete a objcet.");
+      return;
     }
-    if (close) {
-      close();
+    try {
+      if (type === "board") {
+        await deleteBoard(item._id).unwrap();
+        toast.success("Board delete successfully!");
+      } else if (type === "column") {
+        if (!boardId) {
+          toast.error("Board ID is required to delete a column.");
+          return;
+        }
+        await deleteColumn({ boardId, columnId: item._id }).unwrap();
+        toast.success("Column delete successfully!");
+      } else if (type === "task") {
+        if (!boardId || !columnId) {
+          toast.error("Board ID and Column ID are required to delete a task.");
+          return;
+        }
+        await deleteTask({ boardId, columnId, taskId: item._id }).unwrap();
+        toast.success("Task delete successfully!");
+      }
+      if (close) {
+        close();
+      }
+      setCloseModal(false);
+    } catch (error) {
+      console.error(`Error deleting ${type}:`, error);
+      toast.error(`Error deleting ${type}:`);
     }
-    setCloseModal(false);
   };
 
   return (
@@ -51,7 +76,7 @@ export default function DeleteModal({
         </p>
         <div className="flex justify-around items-center pt-2">
           <button
-            onClick={() => handleDeleteBoard(item.id)}
+            onClick={handleDelete}
             className="px-4 py-1 text-lg font-semibold bg-red-400 rounded-lg hover:bg-red-500 duration-200">
             Yes
           </button>

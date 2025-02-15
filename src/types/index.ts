@@ -1,11 +1,11 @@
 export interface Column {
-  id: string;
+  _id?: string;
   title: string;
-  tasks: Task[];
+  tasks?: Task[];
 }
 
 export interface Board {
-  id: string;
+  _id: string;
   title: string;
   columns: Column[];
 }
@@ -16,17 +16,17 @@ export interface BoardState {
 }
 
 export interface Task {
-  id: string;
+  _id: string;
   title: string;
   description: string;
-  deadline?: Date;
-  status?: "todo" | "in-progress" | "done";
-  piority?: "low" | "medium" | "high";
+  deadline: Date;
+  status: "todo" | "in-progress" | "done";
+  piority: "low" | "medium" | "high";
   subTasks: SubTasks[];
 }
 
 export interface SubTasks {
-  id: string;
+  _id: string;
   title: string;
   done: boolean;
 }

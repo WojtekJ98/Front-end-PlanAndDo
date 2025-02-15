@@ -3,45 +3,90 @@ import { RootState } from "../redux/store";
 import { Column } from "../types";
 import ColumnItem from "./ColumnItem";
 import Modal from "./Modal";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import AddBoard from "./AddBoard";
-import { useDispatch } from "react-redux";
-import { editBoard } from "../redux/slices/boardSlice";
+import {
+  useEditBoardMutation,
+  useGetBoardsQuery,
+  useGetColumnsQuery,
+} from "../redux/slices/boardSlice";
 import { DndContext, closestCorners } from "@dnd-kit/core";
 import { SortableContext, arrayMove } from "@dnd-kit/sortable";
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import { DotLoader } from "react-spinners";
 
-export default function BoardView({ isAsideHidden }) {
+interface BoardViewProps {
+  isAsideHidden: boolean;
+}
+
+export default function BoardView({ isAsideHidden }: BoardViewProps) {
   const [isModalOpen, setModalOpen] = useState(false);
 
-  const dispatch = useDispatch();
+  const [editBoard] = useEditBoardMutation();
 
-  const boards = useSelector((state: RootState) => state.boards.boards);
+  const { data: boards = [], isLoading, error, refetch } = useGetBoardsQuery();
   const activeBoard = useSelector(
     (state: RootState) => state.boards.activeBoard
   );
 
-  const activeB = boards.find((board) => board.id === activeBoard);
+  const activeB = boards.find((board) => board._id === activeBoard);
 
-  const handleAddColumnToBoard = (values: {
+  const { data: columns = [], refetch: refetchColumns } = useGetColumnsQuery(
+    activeB?._id,
+    {
+      skip: !activeB,
+    }
+  );
+  useEffect(() => {
+    if (activeB) {
+      refetchColumns();
+    }
+  }, [activeB, refetchColumns]);
+
+  const handleAddColumnToBoard = async (values: {
     boardTitle: string;
     columns: string[];
   }) => {
-    dispatch(
-      editBoard({
-        id: activeB?.id,
-        boardTitle: values.boardTitle,
-        columns: values.columns,
-      })
-    );
+    if (!activeB?._id) {
+      toast.error("No active board selected.");
+      return;
+    }
+
+    try {
+      await editBoard({
+        id: activeB?._id,
+        updateBoard: { title: values.boardTitle, columns: values.columns },
+      }).unwrap();
+      refetch();
+      refetchColumns();
+      toast.success("Board edit successfully!");
+    } catch (error) {
+      console.error("Failed to edit board:", error);
+      toast.error("Failed to edit board!");
+    }
+
     setModalOpen(false);
   };
+  const [optimisticColumns, setOptimisticColumns] = useState<Column[]>([]);
 
-  const handleDragEnd = (event) => {
+  useEffect(() => {
+    if (activeB) {
+      setOptimisticColumns(activeB.columns || []);
+      refetchColumns();
+    }
+  }, [activeB, refetchColumns]);
+
+  const handleDragEnd = async (event: any) => {
     const { active, over } = event;
-    if (!over || active.id === over.id) return;
 
-    const oldIndex = activeB?.columns.findIndex((col) => col.id === active.id);
-    const newIndex = activeB?.columns.findIndex((col) => col.id === over.id);
+    if (!over || active.id === over.id) return;
+    if (!activeB) {
+      return;
+    }
+
+    const oldIndex = activeB?.columns.findIndex((col) => col._id === active.id);
+    const newIndex = activeB?.columns.findIndex((col) => col._id === over.id);
 
     if (oldIndex !== -1 && newIndex !== -1) {
       const updatedColumns = arrayMove(
@@ -49,19 +94,36 @@ export default function BoardView({ isAsideHidden }) {
         oldIndex,
         newIndex
       );
-
-      dispatch(
-        editBoard({
-          id: activeB.id,
-          boardTitle: activeB.title,
-          columns: updatedColumns,
-        })
-      );
+      setOptimisticColumns(updatedColumns);
+      try {
+        await editBoard({
+          id: activeB?._id,
+          updateBoard: { title: activeB?.title, columns: updatedColumns },
+        }).unwrap();
+        refetch();
+        refetchColumns();
+        toast.success("Board reorder successfully!");
+      } catch (error) {
+        console.error("Failed to reorder board:", error);
+        toast.error("Failed to reorder board!");
+        setOptimisticColumns(columns);
+      }
     }
   };
 
   if (!activeB) {
     return <p className="text-2xl p-4 text-white">No selected board</p>;
+  }
+  if (isLoading) {
+    return (
+      <div className="flex flex-col gap-2 items-center justify-center">
+        <DotLoader color="white" /> <p>Loading task form...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return <p>Error loading boards.</p>;
   }
 
   return (
@@ -72,11 +134,12 @@ export default function BoardView({ isAsideHidden }) {
         {activeB.title}
       </h1>
       <DndContext collisionDetection={closestCorners} onDragEnd={handleDragEnd}>
-        {activeB?.columns && (
-          <SortableContext items={activeB.columns.map((col) => col.id)}>
+        {activeB && optimisticColumns && (
+          <SortableContext
+            items={optimisticColumns?.map((col) => col._id || "")}>
             <div className="w-full h-full text-white flex gap-8  ">
-              {activeB?.columns?.map((column: Column) => (
-                <ColumnItem column={column} key={column.id} />
+              {optimisticColumns?.map((column: Column) => (
+                <ColumnItem column={column} key={column._id} board={activeB} />
               ))}
               <div
                 className=" mr-12 min-w-[250px] max-w-64 bg-gray-800 p-2 rounded-lg mt-6 h-64 flex justify-center items-center text-xl font-semibold hover:text-seccondColor hover:shadow-none duration-200 cursor-pointer bg-opacity-80 shadow-lg shadow-gray-800"

@@ -3,29 +3,32 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { SubTasks, Task } from "../types";
 import { IoIosCloseCircleOutline, IoMdAddCircleOutline } from "react-icons/io";
-import { useSelector } from "react-redux";
-import { selectActiveBoardColumns } from "../redux/selectors/selectActiveBoardColumns";
-import { useDispatch } from "react-redux";
-import { addTask } from "../redux/slices/boardSlice";
+import { selectActiveBoard } from "../redux/selectors/selectActiveBoard";
 import * as Yup from "yup";
-
-// interface DateValues {
-//   deadline: Date | null;
-// }
+import { useSelector } from "react-redux";
+import {
+  useAddTaskMutation,
+  useGetBoardQuery,
+  useGetColumnsQuery,
+} from "../redux/slices/boardSlice";
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import { DotLoader } from "react-spinners";
 
 export interface AddTaskFormValues {
   id?: string;
-  title?: string;
-  description?: string;
-  deadline?: Date | null;
-  subTasks?: SubTasks[];
+  title: string;
+  description: string;
+  deadline: Date | null;
+  subTasks: SubTasks[];
   columnId?: string;
-  status?: string;
-  piority?: string;
+  status: string;
+  piority: string;
 }
 interface Props {
   handleUpdateTask?: (values: AddTaskFormValues) => void;
   onClose?: () => void;
+  refetchTasks?: () => void;
   initialValues?: AddTaskFormValues;
 }
 
@@ -37,59 +40,77 @@ const validationValues = Yup.object({
 
 export default function AddTaskHandler({
   handleUpdateTask,
+  refetchTasks,
   onClose,
   initialValues = {
-    id: crypto.randomUUID(),
     title: "",
     description: "",
     deadline: null,
-    subTasks: [{ id: crypto.randomUUID(), title: "", done: false }],
+    subTasks: [{ title: "", done: false }],
     columnId: "",
     status: "todo",
     piority: "low",
   },
 }: Props) {
-  const dispatch = useDispatch();
-  const columns = useSelector(selectActiveBoardColumns);
+  const activeBoard = useSelector(selectActiveBoard);
 
-  // const initialValues: AddTaskFormValues = {
-  //   id: crypto.randomUUID(),
-  //   title: "",
-  //   description: "",
-  //   deadline: { deadline: null, time: null },
-  //   subTasks: [{ id: crypto.randomUUID(), title: "" }],
-  //   columnId: "",
-  //   status: "todo",
-  //   piority: "low",
-  // };
-  const handleTaskSubmit = (values: AddTaskFormValues) => {
+  const { data: board, isLoading, error } = useGetBoardQuery(activeBoard);
+
+  const { data: columns = [] } = useGetColumnsQuery(board?._id, {
+    skip: !board?._id,
+  });
+  const [addTask] = useAddTaskMutation();
+
+  const handleTaskSubmit = async (values: AddTaskFormValues) => {
     const updatedTask: Task = {
-      id: crypto.randomUUID(),
       title: values.title,
       description: values.description,
       deadline: values.deadline ? values.deadline.toISOString() : null,
       status: values.status,
-      piority: values.piority,
-      subTasks: values.subTasks,
+      piority: values.piority ?? "low",
+      subTasks:
+        values.subTasks?.map(({ title, done }) => ({ title, done })) || [],
     };
+    try {
+      if (!values.columnId) {
+        console.error("Column ID is required to add a task.");
+        toast.error("Column ID is required to add a task");
+        return;
+      }
+      console.log(updatedTask);
 
-    if (!values.columnId) {
-      console.error("Column ID is required to add a task.");
-      return;
+      await addTask({
+        boardId: board?._id,
+        columnId: values.columnId,
+        newTask: updatedTask,
+      });
+      refetchTasks?.();
+      onClose?.();
+      toast.success("Task added successfully!");
+    } catch (error) {
+      console.error("Failed to add task:", error);
+      toast.error("Failed to add task.");
     }
-
-    dispatch(addTask({ task: updatedTask, columnId: values.columnId }));
-
-    onClose();
   };
 
   const handleFormSubmit = (values: AddTaskFormValues) => {
     if (initialValues.title) {
-      handleUpdateTask(values); // Update an existing task
+      handleUpdateTask?.(values);
     } else {
-      handleTaskSubmit(values); // Add a new task
+      handleTaskSubmit(values);
     }
   };
+  if (isLoading) {
+    return (
+      <div className="flex flex-col gap-2 items-center justify-center">
+        <DotLoader color="white" /> <p>Loading task form...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return <p>Error loading boards.</p>;
+  }
 
   return (
     <>
@@ -107,7 +128,7 @@ export default function AddTaskHandler({
                 <div className="space-y-2 flex flex-col pb-2 ">
                   <label className="text-lg font-semibold">Name</label>
                   <Field
-                    enableReinitialize
+                    enablereinitialize
                     required
                     placeholder="e.g. Planing the header section"
                     name="title"
@@ -122,7 +143,7 @@ export default function AddTaskHandler({
                 <div className="space-y-2 flex flex-col pb-2 pt-4 ">
                   <label className="text-lg font-semibold">Description</label>
                   <Field
-                    enableReinitialize
+                    enablereinitialize
                     as="textarea"
                     placeholder="e.g. Add a Logo and the Nav"
                     name="description"
@@ -145,26 +166,12 @@ export default function AddTaskHandler({
                       placeholderText="Select a date"
                     />
                   </div>
-                  {/* <div className="flex flex-col flex-1">
-                    <label className="text-lg font-semibold">Time</label>
-                    <DatePicker
-                      selected={values.deadline?.time}
-                      onChange={(time) => setFieldValue("deadline.time", time)}
-                      showTimeSelect
-                      showTimeSelectOnly
-                      timeIntervals={15}
-                      timeCaption="Time"
-                      dateFormat="HH:mm"
-                      className="bg-gray-700 px-3 py-1 rounded-md border-[1px] border-seccondColor outline outline-1 outline-seccondColor placeholder:text-white focus:outline-2 focus:-outline-offset-2 sm:text-sm/6"
-                      placeholderText="Select a time"
-                    />
-                  </div> */}
                 </div>
                 <div className="flex justify-between items-center gap-4  pb-2 pt-4 ">
                   <div className="flex flex-col flex-1">
                     <label className="text-lg font-semibold">Status</label>
                     <Field
-                      enableReinitialize
+                      enablereinitialize
                       as="select"
                       name="status"
                       className="bg-gray-700 px-3 py-1 rounded-md border-[1px] border-seccondColor outline outline-1 outline-seccondColor placeholder:text-white focus:outline-2 focus:-outline-offset-2 sm:text-sm/6">
@@ -176,7 +183,7 @@ export default function AddTaskHandler({
                   <div className="flex flex-col flex-1">
                     <label className="text-lg font-semibold">Piority</label>
                     <Field
-                      enableReinitialize
+                      enablereinitialize
                       as="select"
                       name="piority"
                       className="bg-gray-700 px-3 py-1 rounded-md border-[1px] border-seccondColor outline outline-1 outline-seccondColor placeholder:text-white focus:outline-2 focus:-outline-offset-2 sm:text-sm/6">
@@ -193,7 +200,7 @@ export default function AddTaskHandler({
                       <div className="space-y-4 flex flex-col">
                         {values.subTasks.map((sub, index) => (
                           <div
-                            key={sub.id}
+                            key={sub._id || `new-subtask-${index}`}
                             className="flex justify-between items-center gap-2">
                             <Field
                               className="bg-gray-700 flex-1 px-3 py-1  rounded-md border-[1px] border-seccondColor outline outline-1 outline-seccondColor placeholder:text-white focus:outline-2 focus:-outline-offset-2 sm:text-sm/6"
@@ -233,7 +240,7 @@ export default function AddTaskHandler({
                         Select a column
                       </option>
                       {columns.map((column) => (
-                        <option key={column.id} value={column.id}>
+                        <option key={column._id} value={column._id}>
                           {column.title}
                         </option>
                       ))}
@@ -244,7 +251,6 @@ export default function AddTaskHandler({
                       className="text-red-500"
                     />
                   </div>
-
                   <button
                     className="font-semibold bg-thirdColor rounded-full py-2 hover:bg-opacity-50 duration-200"
                     type="submit">

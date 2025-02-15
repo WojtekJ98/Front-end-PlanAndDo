@@ -6,5 +6,5 @@ export const selectActiveBoard = (state: RootState) => state.boards.activeBoard;
 export const selectActiveBoardObj = createSelector(
   [(state: RootState) => state.boards],
   (boardState) =>
-    boardState.boards.find((board) => board.id === boardState.activeBoard)
+    boardState.boards.find((board) => board._id === boardState.activeBoard)
 );

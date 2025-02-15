@@ -4,7 +4,7 @@ import BoardView from "../../components/BoardView";
 import { useState } from "react";
 
 export default function Dashboard() {
-  const [isAsideHidden, setIsAsideHidden] = useState(false);
+  const [isAsideHidden, setIsAsideHidden] = useState<boolean>(false);
 
   return (
     <>

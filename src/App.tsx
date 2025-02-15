@@ -1,6 +1,7 @@
 import React from "react";
 import { Route, Routes } from "react-router-dom";
-
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import "./index.css";
 import LoadingSpinner from "./components/LoadingSpiner";
 import Home from "./page/home";
@@ -33,6 +34,7 @@ function App() {
           />
         </Routes>
       </React.Suspense>
+      <ToastContainer />
     </AuthProvider>
   );
 }

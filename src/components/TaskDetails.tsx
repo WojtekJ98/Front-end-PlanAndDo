@@ -1,53 +1,69 @@
-import { Board, Column, SubTasks, Task } from "../types";
+import { Task } from "../types";
 import dayjs from "dayjs";
 import { useState } from "react";
 import { FaRegEdit } from "react-icons/fa";
 import { FaRegTrashCan } from "react-icons/fa6";
 import Modal from "./Modal";
 import AddTaskHandler from "./AddTask";
-import { useDispatch } from "react-redux";
-import { editTask, updateSubtask } from "../redux/slices/boardSlice";
+import {
+  useEditTaskMutation,
+  useUpdateSubTaskMutation,
+} from "../redux/slices/boardSlice";
 import DeleteModal from "./DeleteModal";
 import { useSelector } from "react-redux";
-import { RootState } from "../redux/store";
+import { selectActiveBoard } from "../redux/selectors/selectActiveBoard";
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+
 interface Props {
   task: Task;
   columnId: string;
   close: () => void;
 }
 
-export default function TaskDetails({
-  task: initalTask,
-  columnId,
-  close,
-}: Props) {
+export default function TaskDetails({ task, columnId, close }: Props) {
   const [isModalOpen, setModalOpen] = useState(false);
   const [isDeleteModalOpen, setDeleteModalOpen] = useState(false);
   const [isEditMode, setEditMode] = useState(false);
   const [editTaskData, setEditTaskData] = useState<Task | null>(null);
   const [selectTask, setSelectTask] = useState<Task>();
+  const [localTask, setLocalTask] = useState(task);
 
-  const dispatch = useDispatch();
+  const activeBoard = useSelector(selectActiveBoard);
 
-  const handleUpdateTask = (values: Task) => {
-    if (isEditMode && editTaskData) {
-      dispatch(
-        editTask({
-          taskId: editTaskData.id,
+  const [updateSubtask] = useUpdateSubTaskMutation();
+
+  const [editTask] = useEditTaskMutation();
+
+  const handleUpdateTask = async (values: Task) => {
+    try {
+      if (!activeBoard) {
+        return;
+      }
+      if (isEditMode && editTaskData) {
+        await editTask({
+          boardId: activeBoard,
+          taskId: editTaskData._id,
           columnId: columnId,
           updatedTask: {
             title: values.title,
             description: values.description,
             deadline: values.deadline,
             piority: values.piority,
+            status: values.status,
             subTasks: values.subTasks,
           },
-        })
-      );
-      close();
+        });
+        toast.success("Task edited successfully!");
 
-      setModalOpen(false);
-      setEditMode(false);
+        close();
+
+        setModalOpen(false);
+        setEditMode(false);
+      }
+    } catch (error) {
+      console.error("Failed to edit task:", error);
+      toast.error("Failed to edit task.");
     }
   };
   const handleEditTask = (task: Task) => {
@@ -59,26 +75,31 @@ export default function TaskDetails({
     setSelectTask(task);
     setDeleteModalOpen(true);
   };
-  const handleUpdateSubtask = (subTaskId: string) => {
-    dispatch(
-      updateSubtask({
-        columnId: columnId,
-        taskId: task.id,
-        subTaskId: subTaskId,
-      })
-    );
-  };
+  const handleUpdateSubtask = async (subTaskId: string) => {
+    console.log(subTaskId);
+    if (!activeBoard) {
+      return;
+    }
 
-  const task = useSelector((state: RootState) => {
-    const activeBoard = state.boards.boards.find(
-      (board: Board) => board.id === state.boards.activeBoard
-    );
-    if (!activeBoard) return initalTask;
-    const column = activeBoard.columns.find((col) => col.id === columnId);
-    if (!column) return initalTask;
-    const updatedTask = column.tasks.find((t) => t.id === initalTask.id);
-    return updatedTask || initalTask;
-  });
+    try {
+      await updateSubtask({
+        boardId: activeBoard,
+        columnId: columnId,
+        taskId: task._id,
+        subTaskId: subTaskId,
+      });
+      setLocalTask((prevTask) => ({
+        ...prevTask,
+        subTasks: prevTask.subTasks.map((st) =>
+          st._id === subTaskId ? { ...st, done: !st.done } : st
+        ),
+      }));
+      toast.success("Subtask updated successfully!");
+    } catch (error) {
+      console.error("Failed to update subtask:", error);
+      toast.error("Failed to update subtask.");
+    }
+  };
 
   return (
     <>
@@ -116,11 +137,14 @@ export default function TaskDetails({
             {task.subTasks.map((st) => (
               <div
                 className="my-1 bg-slate-800 p-2 flex items-center gap-4"
-                key={st.id}>
+                key={st._id}>
                 <input
                   type="checkbox"
-                  onChange={() => handleUpdateSubtask(st.id)}
-                  checked={st.done}
+                  onChange={() => handleUpdateSubtask(st._id)}
+                  checked={
+                    localTask.subTasks.find((s) => s._id === st._id)?.done ||
+                    false
+                  }
                   className="w-3 h-3"
                 />
                 <p className={st.done ? "line-through text-gray-500" : ""}>
@@ -174,11 +198,11 @@ export default function TaskDetails({
           initialValues={
             isEditMode && editTaskData !== null
               ? {
-                  id: editTaskData.id,
                   title: editTaskData.title,
                   description: editTaskData.description,
                   deadline: editTaskData.deadline,
                   piority: editTaskData.piority,
+                  status: editTaskData.status,
                   subTasks: editTaskData.subTasks,
                   columnId: columnId,
                 }
@@ -191,9 +215,10 @@ export default function TaskDetails({
         onClose={() => setDeleteModalOpen(false)}>
         <DeleteModal
           type={"task"}
-          item={selectTask}
-          setCloseModal={setDeleteModalOpen}
+          item={selectTask!}
+          setCloseModal={() => setDeleteModalOpen(!isDeleteModalOpen)}
           columnId={columnId}
+          boardId={activeBoard ?? ""}
           close={close}
         />
       </Modal>

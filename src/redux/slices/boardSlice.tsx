@@ -1,183 +1,165 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { Board, BoardState, Column, SubTasks, Task } from "../../types";
+import { Board, BoardState, Column, Task } from "../../types";
+import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 
 const initialState: BoardState = {
   boards: [],
   activeBoard: null,
 };
 
+export const boardApi = createApi({
+  reducerPath: "boardApi",
+  baseQuery: fetchBaseQuery({
+    baseUrl: "http://localhost:5000/api",
+    prepareHeaders: (headers) => {
+      const token = localStorage.getItem("token");
+      if (token) {
+        headers.set("Authorization", `Bearer ${token}`);
+      }
+      return headers;
+    },
+  }),
+  tagTypes: ["Boards", "Columns", "Tasks"],
+  endpoints: (builder) => ({
+    getBoards: builder.query<Board[], void>({
+      query: () => "/boards",
+      providesTags: ["Boards"],
+    }),
+    getBoard: builder.query<Board, string>({
+      query: (id) => `/boards/${id}`,
+      providesTags: (result, error, id) => [{ type: "Boards", id }],
+    }),
+    addBoard: builder.mutation<Board, Partial<Board>>({
+      query: (newBoard) => ({
+        url: "/boards",
+        method: "POST",
+        body: newBoard,
+      }),
+      invalidatesTags: ["Boards"],
+    }),
+    editBoard: builder.mutation<
+      Board,
+      { id: string; updateBoard: Partial<Board> }
+    >({
+      query: ({ id, updateBoard }) => ({
+        url: `/boards/${id}`,
+        method: "PUT",
+        body: updateBoard,
+      }),
+      invalidatesTags: ["Boards"],
+    }),
+    deleteBoard: builder.mutation<Board, { id: string }>({
+      query: (id) => ({
+        url: `/boards/${id}`,
+        method: "DELETE",
+      }),
+      invalidatesTags: ["Boards"],
+    }),
+    getColumns: builder.query<Column[], string>({
+      query: (boardId) => `/boards/${boardId}/columns`,
+      providesTags: ["Columns"],
+    }),
+    deleteColumn: builder.mutation<
+      Column,
+      { boardId: string; columnId: string }
+    >({
+      query: ({ boardId, columnId }) => ({
+        url: `/boards/${boardId}/columns/${columnId}`,
+        method: "DELETE",
+      }),
+      invalidatesTags: ["Columns", "Boards"],
+    }),
+    editColumnTitle: builder.mutation<
+      Column,
+      { boardId: string; columnId: string; editedTitle: string }
+    >({
+      query: ({ boardId, columnId, editedTitle }) => ({
+        url: `/boards/${boardId}/columns/${columnId}`,
+        method: "PATCH",
+        body: { title: editedTitle },
+      }),
+      invalidatesTags: ["Columns"],
+    }),
+    addTask: builder.mutation<
+      Task,
+      { boardId: string; columnId: string; newTask: Task }
+    >({
+      query: ({ boardId, columnId, newTask }) => ({
+        url: `/boards/${boardId}/columns/${columnId}/tasks`,
+        method: "POST",
+        body: { newTask },
+      }),
+      invalidatesTags: ["Tasks", "Columns"],
+    }),
+    getColTask: builder.query<Task[], { boardId: string; columnId: string }>({
+      query: ({ boardId, columnId }) =>
+        `/boards/${boardId}/columns/${columnId}/tasks`,
+      providesTags: ["Tasks"],
+    }),
+    deleteTask: builder.mutation<
+      Task,
+      { boardId: string; columnId: string; taskId: string }
+    >({
+      query: ({ boardId, columnId, taskId }) => ({
+        url: `boards/${boardId}/columns/${columnId}/tasks/${taskId}`,
+        method: "DELETE",
+      }),
+      invalidatesTags: ["Tasks", "Columns"],
+    }),
+    editTask: builder.mutation<
+      Task,
+      {
+        boardId: string;
+        columnId: string;
+        taskId: string;
+        updatedTask: Partial<Task>;
+      }
+    >({
+      query: ({ boardId, columnId, taskId, updatedTask }) => ({
+        url: `boards/${boardId}/columns/${columnId}/tasks/${taskId}`,
+        method: "PUT",
+        body: { updatedTask },
+      }),
+      invalidatesTags: ["Tasks"],
+    }),
+    updateSubTask: builder.mutation<
+      Task,
+      { boardId: string; columnId: string; taskId: string; subTaskId: string }
+    >({
+      query: ({ boardId, columnId, taskId, subTaskId }) => ({
+        url: `/boards/${boardId}/columns/${columnId}/tasks/${taskId}/subTasks/${subTaskId}`,
+        method: "PATCH",
+      }),
+      invalidatesTags: ["Tasks"],
+    }),
+  }),
+});
+
 const boardSlice = createSlice({
   name: "boards",
   initialState,
   reducers: {
-    addBoard: (
-      state,
-      action: PayloadAction<{ id: string; title: string; columns: Column[] }>
-    ) => {
-      const newBoard: Board = {
-        id: crypto.randomUUID(),
-        title: action.payload.title,
-        columns: action.payload.columns,
-      };
-      state.boards.push(newBoard);
-    },
     setActiveBoard: (state, action: PayloadAction<string>) => {
       state.activeBoard = action.payload;
-    },
-    editBoard: (state, action) => {
-      state.boards = state.boards.map((board) =>
-        board.id === action.payload.id
-          ? {
-              ...board,
-              title: action.payload.boardTitle,
-              columns: action.payload.columns,
-            }
-          : board
-      );
-    },
-    deleteBoard: (state, action) => {
-      const upDateBoards = state.boards.filter(
-        (board) => board.id !== action.payload
-      );
-      state.boards = upDateBoards;
-    },
-    editColumnTitle: (state, action) => {
-      state.boards.find((item: Board) =>
-        item.id === state.activeBoard
-          ? item.columns.find((col: Column) =>
-              col.id === action.payload.selectColumn.id
-                ? (col.title = action.payload.editedTitle)
-                : null
-            )
-          : null
-      );
-    },
-    deleteColumn: (state, action) => {
-      state.boards.find((item: Board) =>
-        item.id === state.activeBoard
-          ? item.columns.find((col: Column) =>
-              col.id === action.payload.id
-                ? (item.columns = item.columns.filter(
-                    (c) => c.id !== action.payload.id
-                  ))
-                : null
-            )
-          : null
-      );
-      console.log("Deleted column with ID:", action.payload.id);
-    },
-    addTask: (state, action) => {
-      const { columnId, task } = action.payload;
-
-      const activeBoard = state.boards.find(
-        (board) => board.id === state.activeBoard
-      );
-
-      if (!activeBoard) {
-        console.error("Active board not found.");
-        return;
-      }
-
-      const column = activeBoard.columns.find((col) => col.id === columnId);
-
-      if (!column) {
-        console.error(`Column with id ${columnId} not found.`);
-        return;
-      }
-
-      if (!column.tasks) {
-        column.tasks = [];
-      }
-
-      column.tasks.push(task);
-    },
-    editTask: (state, action) => {
-      const { taskId, columnId, updatedTask } = action.payload;
-
-      const activeBoard = state.boards.find(
-        (board) => board.id === state.activeBoard
-      );
-
-      if (!activeBoard) return;
-
-      const column = activeBoard.columns.find((col) => col.id === columnId);
-      if (!column) return;
-      const taskIndex = column.tasks.findIndex((t) => t.id === taskId);
-      if (taskIndex === -1) return;
-
-      column.tasks[taskIndex] = {
-        ...column.tasks[taskIndex],
-        ...updatedTask,
-      };
-    },
-    reorderTask: (state, action) => {
-      const { columnId, updatedTask } = action.payload;
-
-      const activeBoard = state.boards.find(
-        (board) => board.id === state.activeBoard
-      );
-
-      if (!activeBoard) return;
-
-      const column = activeBoard.columns.find((col) => col.id === columnId);
-      if (!column) return;
-
-      column.tasks = updatedTask.tasks;
-    },
-    deleteTask: (state, action) => {
-      state.boards.find((item: Board) =>
-        item.id === state.activeBoard
-          ? item.columns.find((col: Column) =>
-              col.id === action.payload.columnId
-                ? col.tasks.find((t) => t.id === action.payload.taskId)
-                  ? (col.tasks = col.tasks.filter(
-                      (tas) => tas.id !== action.payload.taskId
-                    ))
-                  : null
-                : null
-            )
-          : null
-      );
-      console.log(
-        "Deleted column with ID:",
-        action.payload.columnId,
-        "task",
-        action.payload.taskId
-      );
-    },
-    updateSubtask: (state, action) => {
-      state.boards.find((item: Board) =>
-        item.id === state.activeBoard
-          ? item.columns.find((col: Column) =>
-              col.id === action.payload.columnId
-                ? col.tasks.find((t: Task) =>
-                    t.id === action.payload.taskId
-                      ? t.subTasks.find((st: SubTasks) =>
-                          st.id === action.payload.subTaskId
-                            ? (st.done = !st.done)
-                            : null
-                        )
-                      : null
-                  )
-                : null
-            )
-          : null
-      );
     },
   },
 });
 
-export const {
-  reorderTask,
-  updateSubtask,
-  deleteTask,
-  addBoard,
-  editTask,
-  setActiveBoard,
-  editBoard,
-  deleteBoard,
-  editColumnTitle,
-  deleteColumn,
-  addTask,
-} = boardSlice.actions;
+export const { setActiveBoard } = boardSlice.actions;
 export default boardSlice.reducer;
+
+export const {
+  useGetBoardsQuery,
+  useGetBoardQuery,
+  useAddBoardMutation,
+  useEditBoardMutation,
+  useDeleteBoardMutation,
+  useDeleteColumnMutation,
+  useEditColumnTitleMutation,
+  useGetColumnsQuery,
+  useAddTaskMutation,
+  useGetColTaskQuery,
+  useDeleteTaskMutation,
+  useEditTaskMutation,
+  useUpdateSubTaskMutation,
+} = boardApi;

@@ -1,7 +1,5 @@
-import { useSortable } from "@dnd-kit/sortable";
 import { Task } from "../types";
 import dayjs from "dayjs";
-import { CSS } from "@dnd-kit/utilities";
 
 interface Props {
   task: Task;
@@ -12,32 +10,9 @@ export default function TaskItem({ task, onClick }: Props) {
   const completedSubtasks = task.subTasks.filter((st) => st.done).length;
   const totalSubtasks = task.subTasks.length;
 
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({
-    id: task.id,
-  });
-
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-    opacity: isDragging ? 0.5 : 1, // Reduce opacity while dragging
-  };
-
   return (
-    <div
-      ref={setNodeRef}
-      style={style}
-      {...attributes}
-      className="border-[1px] my-3 p-2 rounded-lg border-slate-700 border-l-indigo-500 border-l-[2px] cursor-pointer shadow-gray-600 shadow-md duration-200 hover:shadow-none">
-      <div
-        {...listeners}
-        className="flex justify-between items-center pt-2 cursor-move">
+    <div className="border-[1px] my-3 p-2 rounded-lg border-slate-700 border-l-indigo-500 border-l-[2px] cursor-pointer shadow-gray-600 shadow-md duration-200 hover:shadow-none">
+      <div className="flex justify-between items-center pt-2 ">
         <h2 className="text-lg font-semibold text-seccondColor">
           {task.title}
         </h2>

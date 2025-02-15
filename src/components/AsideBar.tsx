@@ -1,49 +1,79 @@
 import { useState } from "react";
-import { useDispatch } from "react-redux";
 import {
-  addBoard,
-  editBoard,
   setActiveBoard,
+  useAddBoardMutation,
+  useEditBoardMutation,
+  useGetBoardsQuery,
 } from "../redux/slices/boardSlice";
 import Modal from "./Modal";
 import AddBoard from "./AddBoard";
 import { useSelector } from "react-redux";
-import { RootState } from "../redux/store";
 import { FaRegEdit } from "react-icons/fa";
 import { Board } from "../types";
 import DeleteModal from "./DeleteModal";
 import { FaOutdent, FaIndent } from "react-icons/fa";
+import { useDispatch } from "react-redux";
+import { selectActiveBoard } from "../redux/selectors/selectActiveBoard";
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import { DotLoader } from "react-spinners";
 
-export default function AsideBar({ isHidden, setIsHidden }) {
+interface AsideBarProps {
+  isHidden: boolean;
+  setIsHidden: (hidden: boolean) => void;
+}
+
+export default function AsideBar({ isHidden, setIsHidden }: AsideBarProps) {
   const [isModalOpen, setModalOpen] = useState(false);
   const [isDeleteModalOpen, setDeleteModalOpen] = useState(false);
   const [selectedBoard, setSelecteBoard] = useState<Board | null>(null);
   const [isPopupOpen, setIsPopupOpen] = useState<string | null>(null);
   const [isEditMode, setEditMode] = useState(false);
   const [editBoardData, setEditBoardData] = useState<Board | null>(null);
-  // const [isHidden, setIsHidden] = useState(false);
-
   const dispatch = useDispatch();
 
-  const boards = useSelector((state: RootState) => state.boards.boards);
-  const activeBoard = useSelector(
-    (state: RootState) => state.boards.activeBoard
-  );
+  const [addBoard] = useAddBoardMutation();
+  const [editBoard] = useEditBoardMutation();
+  const { data: boards = [], isLoading, error, refetch } = useGetBoardsQuery();
 
-  const handleAddBoard = (values: {
+  const activeBoard = useSelector(selectActiveBoard);
+
+  const handleAddBoard = async (values: {
     boardTitle: string;
-    columns: string[];
+    columns: { _id?: string; title: string }[];
   }) => {
     if (isEditMode && editBoardData) {
-      dispatch(
-        editBoard({
-          id: editBoardData.id,
-          boardTitle: values.boardTitle,
-          columns: values.columns,
-        })
-      );
+      try {
+        const updatedColumns = values.columns.map((col) => ({
+          _id: col._id || undefined,
+          title: col.title,
+        }));
+
+        await editBoard({
+          id: editBoardData._id,
+          updateBoard: {
+            title: values.boardTitle,
+            columns: updatedColumns,
+          },
+        }).unwrap();
+        refetch();
+        toast.success("Board edited successfully!");
+      } catch (error) {
+        console.error(error);
+        toast.error("Failed to edit board.");
+      }
     } else {
-      dispatch(addBoard({ title: values.boardTitle, columns: values.columns }));
+      try {
+        await addBoard({
+          title: values.boardTitle,
+          columns: values.columns.map((col) => ({ title: col.title })),
+        }).unwrap();
+        refetch();
+        toast.success("Board added successfully!");
+      } catch (error) {
+        console.error(error);
+        toast.error("Failed to add board.");
+      }
     }
     setModalOpen(false);
     setEditMode(false);
@@ -55,11 +85,21 @@ export default function AsideBar({ isHidden, setIsHidden }) {
     setModalOpen(true);
   };
 
-  const handleSetActiveBoard = (id: string) => {
-    dispatch(setActiveBoard(id));
+  const handleSetActiveBoard = (_id: string) => {
+    dispatch(setActiveBoard(_id));
   };
-  console.log(boards);
 
+  if (isLoading) {
+    return (
+      <div className="flex flex-col gap-2 items-center justify-center">
+        <DotLoader color="white" /> <p>Loading task form...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return <p>Error loading boards.</p>;
+  }
   return (
     <aside
       className={`h-[91vh] border-r-[1px] py-4 pt-8 border-gray-500  relative  min-w-[250px] w-[250px]  transition-all duration-300  ${
@@ -95,28 +135,30 @@ export default function AsideBar({ isHidden, setIsHidden }) {
           <ul className="space-y-2">
             {boards.map((board) => (
               <li
-                onClick={() => handleSetActiveBoard(board.id)}
-                key={board.id}
+                onClick={() => {
+                  handleSetActiveBoard(board._id);
+                }}
+                key={board._id}
                 className={`flex gap-4 group cursor-pointer  justify-between items-center ${
-                  activeBoard === board.id
+                  activeBoard === board._id
                     ? "bg-indigo-500 text-white px-4 py-2 rounded-e-full"
                     : "bg-none text-indigo-500 "
                 }`}>
                 <p className="pl-8 font-semibold duration-200 text-xl text-center">
                   {board.title}
                 </p>
-                {activeBoard === board.id && (
+                {activeBoard === board._id && (
                   <div className="relative">
                     <button
                       onClick={() =>
                         setIsPopupOpen(
-                          isPopupOpen === board.id ? null : board.id
+                          isPopupOpen === board._id ? null : board._id
                         )
                       }
                       className="hidden group-hover:inline ">
                       <FaRegEdit />
                     </button>
-                    {isPopupOpen === board.id && (
+                    {isPopupOpen === board._id && (
                       <div
                         onMouseLeave={() => setIsPopupOpen(null)}
                         className="absolute w-40 bg-gray-900 rounded-lg shadow-md shadow-gray-400">
@@ -124,7 +166,10 @@ export default function AsideBar({ isHidden, setIsHidden }) {
                           <li className="border-b-[1px] w-full text-center  font-semibold p-2 hover:text-indigo-500 duration-200">
                             <button
                               className="w-full"
-                              onClick={() => handleEditBoard(board)}>
+                              onClick={() => {
+                                handleEditBoard(board);
+                                console.log(board);
+                              }}>
                               Edit Board
                             </button>
                           </li>
@@ -160,15 +205,17 @@ export default function AsideBar({ isHidden, setIsHidden }) {
       </button>
       <Modal isOpen={isModalOpen} onClose={() => setModalOpen(false)}>
         <AddBoard
+          board={activeBoard as string}
           onSubmit={handleAddBoard}
-          initialValues={
-            isEditMode && editBoardData !== null
-              ? {
-                  boardTitle: editBoardData.title,
-                  columns: editBoardData.columns,
-                }
-              : undefined
-          }
+          initialValues={{
+            boardTitle: editBoardData?.title || "",
+            columns: editBoardData
+              ? editBoardData.columns.map((col) => ({
+                  _id: col._id,
+                  title: col.title,
+                }))
+              : [{ _id: undefined, title: "" }],
+          }}
         />
       </Modal>
       <Modal
@@ -176,8 +223,8 @@ export default function AsideBar({ isHidden, setIsHidden }) {
         onClose={() => setDeleteModalOpen(false)}>
         <DeleteModal
           type={"board"}
-          item={selectedBoard}
-          setCloseModal={setDeleteModalOpen}
+          item={selectedBoard!}
+          setCloseModal={() => setDeleteModalOpen(!isDeleteModalOpen)}
         />
       </Modal>
     </aside>
