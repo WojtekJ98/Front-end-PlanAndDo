@@ -35,7 +35,8 @@ export default function DeleteModal({
     }
     try {
       if (type === "board") {
-        await deleteBoard(item._id).unwrap();
+        await deleteBoard({ id: item._id }).unwrap();
+
         toast.success("Board delete successfully!");
       } else if (type === "column") {
         if (!boardId) {

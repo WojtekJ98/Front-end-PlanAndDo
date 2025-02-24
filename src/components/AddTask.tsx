@@ -22,8 +22,8 @@ export interface AddTaskFormValues {
   deadline: Date | null;
   subTasks: SubTasks[];
   columnId?: string;
-  status: string;
-  piority: string;
+  status: "todo" | "in-progress" | "done";
+  piority: "low" | "medium" | "high";
 }
 interface Props {
   handleUpdateTask?: (values: AddTaskFormValues) => void;
@@ -46,10 +46,11 @@ export default function AddTaskHandler({
     title: "",
     description: "",
     deadline: null,
-    subTasks: [{ title: "", done: false }],
+    subTasks: [{ id: crypto.randomUUID(), title: "", done: false }],
     columnId: "",
     status: "todo",
     piority: "low",
+    id: "",
   },
 }: Props) {
   const activeBoard = useSelector(selectActiveBoard);
@@ -68,8 +69,11 @@ export default function AddTaskHandler({
       deadline: values.deadline ? values.deadline.toISOString() : null,
       status: values.status,
       piority: values.piority ?? "low",
-      subTasks:
-        values.subTasks?.map(({ title, done }) => ({ title, done })) || [],
+      subTasks: values.subTasks?.map((sub) => ({
+        id: sub.id || crypto.randomUUID(),
+        title: sub.title,
+        done: sub.done ?? false,
+      })),
     };
     try {
       if (!values.columnId) {
@@ -128,7 +132,6 @@ export default function AddTaskHandler({
                 <div className="space-y-2 flex flex-col pb-2 ">
                   <label className="text-lg font-semibold">Name</label>
                   <Field
-                    enablereinitialize
                     required
                     placeholder="e.g. Planing the header section"
                     name="title"
@@ -143,7 +146,6 @@ export default function AddTaskHandler({
                 <div className="space-y-2 flex flex-col pb-2 pt-4 ">
                   <label className="text-lg font-semibold">Description</label>
                   <Field
-                    enablereinitialize
                     as="textarea"
                     placeholder="e.g. Add a Logo and the Nav"
                     name="description"
@@ -171,7 +173,6 @@ export default function AddTaskHandler({
                   <div className="flex flex-col flex-1">
                     <label className="text-lg font-semibold">Status</label>
                     <Field
-                      enablereinitialize
                       as="select"
                       name="status"
                       className="bg-gray-700 px-3 py-1 rounded-md border-[1px] border-seccondColor outline outline-1 outline-seccondColor placeholder:text-white focus:outline-2 focus:-outline-offset-2 sm:text-sm/6">
@@ -183,7 +184,6 @@ export default function AddTaskHandler({
                   <div className="flex flex-col flex-1">
                     <label className="text-lg font-semibold">Piority</label>
                     <Field
-                      enablereinitialize
                       as="select"
                       name="piority"
                       className="bg-gray-700 px-3 py-1 rounded-md border-[1px] border-seccondColor outline outline-1 outline-seccondColor placeholder:text-white focus:outline-2 focus:-outline-offset-2 sm:text-sm/6">
@@ -200,14 +200,14 @@ export default function AddTaskHandler({
                       <div className="space-y-4 flex flex-col">
                         {values.subTasks.map((sub, index) => (
                           <div
-                            key={sub._id || `new-subtask-${index}`}
+                            key={sub.id || `new-subtask-${index}`}
                             className="flex justify-between items-center gap-2">
                             <Field
                               className="bg-gray-700 flex-1 px-3 py-1  rounded-md border-[1px] border-seccondColor outline outline-1 outline-seccondColor placeholder:text-white focus:outline-2 focus:-outline-offset-2 sm:text-sm/6"
                               name={`subTasks[${index}].title`}
                               value={sub.title}
                               placeholder="e.g. Create a logo for the company"
-                            />{" "}
+                            />
                             <button
                               onClick={() => remove(index)}
                               className=" text-white hover:text-red-500 duration-200">
@@ -228,11 +228,12 @@ export default function AddTaskHandler({
                     )}
                   </FieldArray>
                   <div className="space-y-2 flex flex-col pb-2 pt-4 ">
-                    <label className="text-lg font-semibold">
+                    <label htmlFor="columnId" className="text-lg font-semibold">
                       Assign to Column
                     </label>
                     <Field
-                      requried
+                      id="columnId"
+                      required
                       as="select"
                       name="columnId"
                       className="bg-gray-700 px-3 py-1 rounded-md border-[1px] border-seccondColor outline outline-1 outline-seccondColor placeholder:text-white focus:outline-2 focus:-outline-offset-2 sm:text-sm/6">
@@ -254,7 +255,7 @@ export default function AddTaskHandler({
                   <button
                     className="font-semibold bg-thirdColor rounded-full py-2 hover:bg-opacity-50 duration-200"
                     type="submit">
-                    {initialValues.title ? "Update Task" : " Create Task"}
+                    {initialValues.title ? "Update Task" : "Create Task"}
                   </button>
                 </div>
               </Form>

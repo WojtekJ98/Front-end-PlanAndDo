@@ -3,6 +3,9 @@ import { Formik, Form, Field, ErrorMessage, FormikHelpers } from "formik";
 import * as Yup from "yup";
 import axios from "axios";
 import { useState } from "react";
+import { FcTodoList } from "react-icons/fc";
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 interface SignUpValues {
   email: string;
@@ -43,18 +46,25 @@ export default function SignUp() {
 
   const handleSubmit = async (
     values: SignUpValues,
-    { setSubmitting, restForm }: FormikHelpers<SignUpValues>
+    { setSubmitting, resetForm }: FormikHelpers<SignUpValues>
   ) => {
     try {
       const response = await axios.post(
         "http://localhost:5000/api/auth/signup",
         values
       );
-      console.log("User created Successfuly!", response.data.message);
-      setErrorMessage("");
-      restForm();
+      if (response.status === 201 || response.status === 200) {
+        // Ensure it's a successful status
+        console.log("User created successfully!", response.data.message);
+        toast.success("User created successfully!");
+        setErrorMessage(""); // Clear any previous error
+        resetForm(); // Fix typo (was restForm)
+      } else {
+        throw new Error("Unexpected response status: " + response.status);
+      }
     } catch (error: any) {
       setErrorMessage(error.response?.data?.error || "Something went wrong");
+      toast.error("Something went wrong");
     } finally {
       setSubmitting(false);
     }
@@ -64,19 +74,15 @@ export default function SignUp() {
     <>
       <div className="relative min-h-screen">
         <div className="bg -z-10"></div>
-        <header className="w-full  border-b-1 border-gray-500 px-4 lg:px-20 py-4 text-white flex justify-between items-center  text-2xl ">
-          <Link to="/">
-            <h2>ToDo Logo</h2>
+        <header className="w-full  border-b-1 border-gray-500 px-4 lg:px-20 py-4 text-white flex justify-center items-center  text-2xl ">
+          <Link to="/" className="flex items-center gap-2 text-seccondColor">
+            <FcTodoList className="text-4xl" />
+            <h2 className="font-bold">Plan & Do</h2>
           </Link>
         </header>
         <main>
           <div className="flex min-h-full flex-1 flex-col justify-center px-6 py-12 lg:px-8">
             <div className="sm:mx-auto sm:w-full sm:max-w-sm">
-              <img
-                alt="Your Company"
-                src="https://tailwindui.com/plus/img/logos/mark.svg?color=indigo&shade=600"
-                className="mx-auto h-10 w-auto"
-              />
               <h2 className="mt-10 text-center text-2xl/9 font-bold tracking-tight text-white">
                 Sign Up and create account
               </h2>

@@ -5,6 +5,7 @@ import { useAuth } from "../context/AuthProvider";
 import Modal from "./Modal";
 import { useState } from "react";
 import AddTaskHandler from "./AddTask";
+import { FcTodoList } from "react-icons/fc";
 
 export default function Header() {
   const [isModalOpen, setModalOpen] = useState(false);
@@ -15,9 +16,10 @@ export default function Header() {
     <>
       <header className="w-full  h-16">
         <div className="h-16 w-full  text-white flex  text-2xl  border-b-[1px] border-gray-600">
-          <div className="flex justify-center p-2 items-center sm:border-r-[1px]  sm:min-w-[250px] sm:w-[250px] border-gray-500 ">
-            <Link to="/">
-              <h2>ToDo Logo</h2>
+          <div className="flex justify-center p-2 w-full items-center sm:border-r-[1px]  sm:min-w-[250px] sm:w-[250px] border-gray-500 ">
+            <Link to="/" className="flex items-center gap-2 text-seccondColor">
+              <FcTodoList className="text-4xl" />
+              <h2 className="font-bold">Plan & Do</h2>
             </Link>
           </div>
           <div className="w-full h-16 px-4 lg:px-12 py-4 text-white flex justify-end items-center  gap-12 ">

@@ -22,7 +22,10 @@ export const boardApi = createApi({
   tagTypes: ["Boards", "Columns", "Tasks"],
   endpoints: (builder) => ({
     getBoards: builder.query<Board[], void>({
-      query: () => "/boards",
+      query: () => ({
+        url: "/boards",
+        method: "GET",
+      }),
       providesTags: ["Boards"],
     }),
     getBoard: builder.query<Board, string>({
@@ -49,7 +52,7 @@ export const boardApi = createApi({
       invalidatesTags: ["Boards"],
     }),
     deleteBoard: builder.mutation<Board, { id: string }>({
-      query: (id) => ({
+      query: ({ id }) => ({
         url: `/boards/${id}`,
         method: "DELETE",
       }),
@@ -78,7 +81,7 @@ export const boardApi = createApi({
         method: "PATCH",
         body: { title: editedTitle },
       }),
-      invalidatesTags: ["Columns"],
+      invalidatesTags: ["Columns", "Boards"],
     }),
     addTask: builder.mutation<
       Task,
@@ -89,7 +92,7 @@ export const boardApi = createApi({
         method: "POST",
         body: { newTask },
       }),
-      invalidatesTags: ["Tasks", "Columns"],
+      invalidatesTags: ["Columns", "Tasks"],
     }),
     getColTask: builder.query<Task[], { boardId: string; columnId: string }>({
       query: ({ boardId, columnId }) =>

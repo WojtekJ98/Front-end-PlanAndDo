@@ -34,7 +34,12 @@ export default function AsideBar({ isHidden, setIsHidden }: AsideBarProps) {
 
   const [addBoard] = useAddBoardMutation();
   const [editBoard] = useEditBoardMutation();
-  const { data: boards = [], isLoading, error, refetch } = useGetBoardsQuery();
+  const {
+    data: boards = [],
+    isLoading,
+    error,
+    refetch,
+  } = useGetBoardsQuery(undefined, { refetchOnMountOrArgChange: true });
 
   const activeBoard = useSelector(selectActiveBoard);
 
@@ -168,7 +173,6 @@ export default function AsideBar({ isHidden, setIsHidden }: AsideBarProps) {
                               className="w-full"
                               onClick={() => {
                                 handleEditBoard(board);
-                                console.log(board);
                               }}>
                               Edit Board
                             </button>

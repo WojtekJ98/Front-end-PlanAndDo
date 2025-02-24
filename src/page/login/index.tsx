@@ -4,6 +4,7 @@ import * as Yup from "yup";
 import axios from "axios";
 import { useState } from "react";
 import { useAuth } from "../../context/AuthProvider";
+import { FcTodoList } from "react-icons/fc";
 
 interface SignInValues {
   email: string;
@@ -54,19 +55,15 @@ export default function Login() {
     <>
       <div className="relative min-h-screen">
         <div className="bg -z-10"></div>
-        <header className="w-full  border-b-1 border-gray-500 px-4 lg:px-20 py-4 text-white flex justify-between items-center  text-2xl ">
-          <Link to="/">
-            <h2>ToDo Logo</h2>
+        <header className="w-full  border-b-1 border-gray-500 px-4 lg:px-20 py-4 text-white flex justify-center items-center  text-2xl ">
+          <Link to="/" className="flex items-center gap-2 text-seccondColor">
+            <FcTodoList className="text-4xl" />
+            <h2 className="font-bold">Plan & Do</h2>
           </Link>
         </header>
         <main>
           <div className="flex min-h-full flex-1 flex-col justify-center px-6 py-12 lg:px-8">
             <div className="sm:mx-auto sm:w-full sm:max-w-sm">
-              <img
-                alt="Your Company"
-                src="https://tailwindui.com/plus/img/logos/mark.svg?color=indigo&shade=600"
-                className="mx-auto h-10 w-auto"
-              />
               <h2 className="mt-10 text-center text-2xl/9 font-bold tracking-tight text-white">
                 Sign in to your account
               </h2>
@@ -112,13 +109,6 @@ export default function Login() {
                           className="block text-sm/6 font-medium text-white">
                           Password
                         </label>
-                        <div className="text-sm">
-                          <a
-                            href="#"
-                            className="font-semibold text-seccondColor  hover:text-indigo-500">
-                            Forgot password?
-                          </a>
-                        </div>
                       </div>
                       <div className="mt-2">
                         <Field

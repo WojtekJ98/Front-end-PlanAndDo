@@ -30,6 +30,7 @@ export default function TaskDetails({ task, columnId, close }: Props) {
   const [localTask, setLocalTask] = useState(task);
 
   const activeBoard = useSelector(selectActiveBoard);
+  console.log(task);
 
   const [updateSubtask] = useUpdateSubTaskMutation();
 
@@ -117,7 +118,10 @@ export default function TaskDetails({ task, columnId, close }: Props) {
             <p className=" opacity-65 text-slate-900 font-semibold text-sm">
               Deadline
             </p>
-            <p className="text-sm ">
+            <p
+              className={`text-sm ${
+                task.deadline ? "text-yellow-500" : "text-green-500"
+              } `}>
               {task.deadline
                 ? dayjs(task.deadline).format("DD.MM.YYYY")
                 : "No Deadline"}

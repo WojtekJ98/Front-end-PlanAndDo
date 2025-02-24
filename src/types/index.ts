@@ -19,14 +19,14 @@ export interface Task {
   _id: string;
   title: string;
   description: string;
-  deadline: Date;
+  deadline: Date | null;
   status: "todo" | "in-progress" | "done";
   piority: "low" | "medium" | "high";
   subTasks: SubTasks[];
 }
 
 export interface SubTasks {
-  _id: string;
+  id: string;
   title: string;
   done: boolean;
 }

@@ -27,7 +27,7 @@ export default function AddBoard({
   onSubmit,
   initialValues = {
     boardTitle: "",
-    columns: [{ _id: " ", title: "" }],
+    columns: [{ _id: "", title: "" }],
   },
 }: AddBoardProps) {
   const [deleteColumn] = useDeleteColumnMutation();
@@ -69,7 +69,7 @@ export default function AddBoard({
           onSubmit({
             boardTitle,
             columns: columns.map((col) => ({
-              _id: col._id || undefined,
+              _id: col._id || "",
               title: col.title,
             })),
           });
@@ -79,7 +79,7 @@ export default function AddBoard({
             <div className="space-y-2 flex flex-col pb-2 ">
               <label className="text-lg font-semibold">Name</label>
               <Field
-                enableReinitialize
+                enablereinitialize
                 required
                 placeholder="e.g. App project or Selling plan"
                 name="boardTitle"
@@ -106,7 +106,7 @@ export default function AddBoard({
                           className="bg-gray-700 flex-1 px-3 py-1  rounded-md border-[1px] border-seccondColor outline outline-1 outline-seccondColor placeholder:text-white focus:outline-2 focus:-outline-offset-2 sm:text-sm/6"
                           name={`columns[${index}].title`}
                           value={column.title}
-                          placeholder="e.g. Planning, Todo, in Progress"
+                          placeholder="e.g. Planning, Shoping"
                         />
                         <button
                           onClick={(e) => {
