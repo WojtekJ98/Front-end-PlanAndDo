@@ -6,12 +6,7 @@
   ],
   "compilerOptions": {
     "jsx": "react-jsx",
-    "esModuleInterop": true,
-    "exclude": [
-      "**/*.test.ts",
-      "**/*.test.tsx",
-      "**/*.spec.ts",
-      "**/*.spec.tsx"
-    ]
-  }
+    "esModuleInterop": true
+  },
+  "exclude": ["**/*.test.ts", "**/*.test.tsx", "**/*.spec.ts", "**/*.spec.tsx"]
 }

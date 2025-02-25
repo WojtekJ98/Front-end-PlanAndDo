@@ -11,8 +11,8 @@ describe("Test Task Details Component", () => {
     title: "Test Task Item",
     description: "This is a description to test task.",
     subTasks: [
-      { _id: "sub1", title: "Subtask 1", done: true },
-      { _id: "sub2", title: "Subtask 2", done: false },
+      { id: "sub1", title: "Subtask 1", done: true },
+      { id: "sub2", title: "Subtask 2", done: false },
     ],
     piority: "high",
     status: "in-progress",
