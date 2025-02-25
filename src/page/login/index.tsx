@@ -1,4 +1,4 @@
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { Formik, Form, Field, ErrorMessage, FormikHelpers } from "formik";
 import * as Yup from "yup";
 import axios from "axios";
@@ -10,6 +10,7 @@ interface SignInValues {
   email: string;
   password: string;
 }
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 //  Validation by Yup
 
@@ -25,7 +26,6 @@ const validationValues = Yup.object({
 export default function Login() {
   const { login } = useAuth();
 
-  const navigate = useNavigate();
   const [errorMessage, setErrorMessage] = useState("");
   const initialValues: SignInValues = {
     email: "",
@@ -37,10 +37,7 @@ export default function Login() {
     { setSubmitting }: FormikHelpers<SignInValues>
   ) => {
     try {
-      const response = await axios.post(
-        "http://localhost:5000/api/auth/login",
-        values
-      );
+      const response = await axios.post(`${API_BASE_URL}/auth/login`, values);
       const { token } = response.data;
       console.log("User login Successfuly!", response.data);
       login(token);

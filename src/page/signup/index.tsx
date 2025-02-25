@@ -7,6 +7,8 @@ import { FcTodoList } from "react-icons/fc";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
 interface SignUpValues {
   email: string;
   password: string;
@@ -49,16 +51,12 @@ export default function SignUp() {
     { setSubmitting, resetForm }: FormikHelpers<SignUpValues>
   ) => {
     try {
-      const response = await axios.post(
-        "http://localhost:5000/api/auth/signup",
-        values
-      );
+      const response = await axios.post(`${API_BASE_URL}/auth/signup`, values);
       if (response.status === 201 || response.status === 200) {
-        // Ensure it's a successful status
         console.log("User created successfully!", response.data.message);
         toast.success("User created successfully!");
-        setErrorMessage(""); // Clear any previous error
-        resetForm(); // Fix typo (was restForm)
+        setErrorMessage("");
+        resetForm();
       } else {
         throw new Error("Unexpected response status: " + response.status);
       }
