@@ -84,7 +84,7 @@ export default function ColumnItem({ column, board }: Props) {
 
   const { attributes, listeners, setNodeRef, transform, transition } =
     useSortable({
-      id: column._id,
+      id: column._id ?? crypto.randomUUID(),
     });
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -206,7 +206,7 @@ export default function ColumnItem({ column, board }: Props) {
             title: "",
             description: "",
             deadline: null,
-            subTasks: [{ _id: crypto.randomUUID(), title: "", done: false }],
+            subTasks: [{ id: crypto.randomUUID(), title: "", done: false }],
             columnId: column._id,
             status: "todo",
             piority: "low",
