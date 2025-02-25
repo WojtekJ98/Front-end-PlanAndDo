@@ -44,7 +44,7 @@ export default function TaskDetails({ task, columnId, close }: Props) {
       if (isEditMode && editTaskData) {
         await editTask({
           boardId: activeBoard,
-          taskId: editTaskData._id,
+          taskId: editTaskData._id ?? "",
           columnId: columnId,
           updatedTask: {
             title: values.title,
@@ -86,13 +86,13 @@ export default function TaskDetails({ task, columnId, close }: Props) {
       await updateSubtask({
         boardId: activeBoard,
         columnId: columnId,
-        taskId: task._id,
+        taskId: task._id ?? "",
         subTaskId: subTaskId,
       });
       setLocalTask((prevTask) => ({
         ...prevTask,
         subTasks: prevTask.subTasks.map((st) =>
-          st._id === subTaskId ? { ...st, done: !st.done } : st
+          st.id === subTaskId ? { ...st, done: !st.done } : st
         ),
       }));
       toast.success("Subtask updated successfully!");
@@ -141,12 +141,12 @@ export default function TaskDetails({ task, columnId, close }: Props) {
             {task.subTasks.map((st) => (
               <div
                 className="my-1 bg-slate-800 p-2 flex items-center gap-4"
-                key={st._id}>
+                key={st.id}>
                 <input
                   type="checkbox"
-                  onChange={() => handleUpdateSubtask(st._id)}
+                  onChange={() => handleUpdateSubtask(st.id)}
                   checked={
-                    localTask.subTasks.find((s) => s._id === st._id)?.done ||
+                    localTask.subTasks.find((s) => s.id === st.id)?.done ||
                     false
                   }
                   className="w-3 h-3"
