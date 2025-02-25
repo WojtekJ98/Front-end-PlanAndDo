@@ -1,5 +1,5 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
-import AddBoard from "./AddBoard";
+import AddBoard from "../components/AddBoard";
 import "@testing-library/jest-dom";
 import { Provider } from "react-redux";
 import store from "../redux/store";

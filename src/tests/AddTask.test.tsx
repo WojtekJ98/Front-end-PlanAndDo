@@ -2,7 +2,7 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { Provider } from "react-redux";
 import configureStore from "redux-mock-store";
 import { useSelector } from "react-redux";
-import AddTaskHandler from "./AddTask";
+import AddTaskHandler from "../components/AddTask";
 import "@testing-library/jest-dom";
 import userEvent from "@testing-library/user-event";
 

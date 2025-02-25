@@ -1,6 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import { Task } from "../types";
-import TaskDetails from "./TaskDetails";
+import TaskDetails from "../components/TaskDetails";
 import "@testing-library/jest-dom";
 import { Provider } from "react-redux";
 import store from "../redux/store";
