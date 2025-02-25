@@ -83,6 +83,10 @@ export default function AddTaskHandler({
       }
       console.log(updatedTask);
 
+      if (!board?._id) {
+        toast.error("Board ID is missing.");
+        return;
+      }
       await addTask({
         boardId: board?._id,
         columnId: values.columnId,
