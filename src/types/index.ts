@@ -16,7 +16,7 @@ export interface BoardState {
 }
 
 export interface Task {
-  _id: string;
+  _id?: string;
   title: string;
   description: string;
   deadline: Date | null;
