@@ -53,11 +53,11 @@ export default function AddTaskHandler({
     id: "",
   },
 }: Props) {
-  const activeBoard = useSelector(selectActiveBoard);
+  const activeBoard = useSelector(selectActiveBoard) ?? "";
 
   const { data: board, isLoading, error } = useGetBoardQuery(activeBoard);
 
-  const { data: columns = [] } = useGetColumnsQuery(board?._id, {
+  const { data: columns = [] } = useGetColumnsQuery(board?._id ?? "", {
     skip: !board?._id,
   });
   const [addTask] = useAddTaskMutation();
@@ -66,7 +66,7 @@ export default function AddTaskHandler({
     const updatedTask: Task = {
       title: values.title,
       description: values.description,
-      deadline: values.deadline ? values.deadline.toISOString() : null,
+      deadline: values.deadline instanceof Date ? values.deadline : null,
       status: values.status,
       piority: values.piority ?? "low",
       subTasks: values.subTasks?.map((sub) => ({
