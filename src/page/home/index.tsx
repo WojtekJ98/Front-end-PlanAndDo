@@ -2,11 +2,11 @@ import { Link } from "react-router-dom";
 import { FcTodoList } from "react-icons/fc";
 
 export default function Home() {
-  const navLink = [
-    { title: "Description", link: "description" },
-    { title: "Tech Stack", link: "tech-stack" },
-    { title: "Contact", link: "contact" },
-  ];
+  // const navLink = [
+  //   { title: "Description", link: "description" },
+  //   { title: "Tech Stack", link: "tech-stack" },
+  //   { title: "Contact", link: "contact" },
+  // ];
 
   return (
     <>

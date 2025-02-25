@@ -31,7 +31,7 @@ export const boardApi = createApi({
     }),
     getBoard: builder.query<Board, string>({
       query: (id) => `/boards/${id}`,
-      providesTags: (result, error, id) => [{ type: "Boards", id }],
+      providesTags: (_, __, id) => [{ type: "Boards", id }],
     }),
     addBoard: builder.mutation<Board, Partial<Board>>({
       query: (newBoard) => ({
