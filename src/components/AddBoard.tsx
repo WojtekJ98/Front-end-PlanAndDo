@@ -27,7 +27,7 @@ export default function AddBoard({
   onSubmit,
   initialValues = {
     boardTitle: "",
-    columns: [{ _id: "", title: "" }],
+    columns: [{ _id: undefined, title: "" }],
   },
 }: AddBoardProps) {
   const [deleteColumn] = useDeleteColumnMutation();
@@ -130,7 +130,7 @@ export default function AddBoard({
                     <button
                       className="bg-seccondColor flex justify-center items-center font-semibold gap-4 rounded-full py-2 hover:bg-indigo-500 duration-200"
                       type="button"
-                      onClick={() => push({ _id: undefined, title: "" })}>
+                      onClick={() => push({ title: "" })}>
                       <IoMdAddCircleOutline className="text-xl " />
                       Add new Column
                     </button>

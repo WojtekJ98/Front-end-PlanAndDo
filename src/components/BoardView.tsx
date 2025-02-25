@@ -46,7 +46,7 @@ export default function BoardView({ isAsideHidden }: BoardViewProps) {
 
   const handleAddColumnToBoard = async (values: {
     boardTitle: string;
-    columns: { id: string; title: string }[];
+    columns: { id?: string; title: string }[];
   }) => {
     if (!activeB?._id) {
       toast.error("No active board selected.");
@@ -59,7 +59,7 @@ export default function BoardView({ isAsideHidden }: BoardViewProps) {
         updateBoard: {
           title: values.boardTitle,
           columns: values.columns.map((col) => ({
-            _id: col.id,
+            ...(col.id ? { _id: col.id } : {}),
             title: col.title,
           })),
         },
@@ -158,6 +158,7 @@ export default function BoardView({ isAsideHidden }: BoardViewProps) {
       </DndContext>
       <Modal isOpen={isModalOpen} onClose={() => setModalOpen(false)}>
         <AddBoard
+          board={activeB._id}
           onSubmit={handleAddColumnToBoard}
           initialValues={{
             boardTitle: activeB.title,
