@@ -33,7 +33,7 @@ export default function BoardView({ isAsideHidden }: BoardViewProps) {
   const activeB = boards.find((board) => board._id === activeBoard);
 
   const { data: columns = [], refetch: refetchColumns } = useGetColumnsQuery(
-    activeB?._id,
+    activeB?._id ?? "",
     {
       skip: !activeB,
     }
@@ -46,7 +46,7 @@ export default function BoardView({ isAsideHidden }: BoardViewProps) {
 
   const handleAddColumnToBoard = async (values: {
     boardTitle: string;
-    columns: string[];
+    columns: { id: string; title: string }[];
   }) => {
     if (!activeB?._id) {
       toast.error("No active board selected.");
@@ -56,7 +56,13 @@ export default function BoardView({ isAsideHidden }: BoardViewProps) {
     try {
       await editBoard({
         id: activeB?._id,
-        updateBoard: { title: values.boardTitle, columns: values.columns },
+        updateBoard: {
+          title: values.boardTitle,
+          columns: values.columns.map((col) => ({
+            _id: col.id,
+            title: col.title,
+          })),
+        },
       }).unwrap();
       refetch();
       refetchColumns();

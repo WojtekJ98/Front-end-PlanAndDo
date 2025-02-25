@@ -69,7 +69,7 @@ export default function AddBoard({
           onSubmit({
             boardTitle,
             columns: columns.map((col) => ({
-              _id: col._id || "",
+              _id: col._id,
               title: col.title,
             })),
           });
