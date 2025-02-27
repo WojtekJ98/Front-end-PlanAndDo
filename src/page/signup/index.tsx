@@ -51,7 +51,10 @@ export default function SignUp() {
     { setSubmitting, resetForm }: FormikHelpers<SignUpValues>
   ) => {
     try {
-      const response = await axios.post(`${API_BASE_URL}/auth/signup`, values);
+      const response = await axios.post(
+        `${API_BASE_URL}/api/auth/signup`,
+        values
+      );
       if (response.status === 201 || response.status === 200) {
         console.log("User created successfully!", response.data.message);
         toast.success("User created successfully!");

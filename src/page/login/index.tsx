@@ -37,9 +37,13 @@ export default function Login() {
     { setSubmitting }: FormikHelpers<SignInValues>
   ) => {
     try {
-      const response = await axios.post(`${API_BASE_URL}/auth/login`, values, {
-        withCredentials: true,
-      });
+      const response = await axios.post(
+        `${API_BASE_URL}/api/auth/login`,
+        values,
+        {
+          withCredentials: true,
+        }
+      );
       const { token } = response.data;
       console.log("User login Successfuly!", response.data);
       login(token);
