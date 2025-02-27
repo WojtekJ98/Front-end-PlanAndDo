@@ -24,18 +24,18 @@ export const boardApi = createApi({
   endpoints: (builder) => ({
     getBoards: builder.query<Board[], void>({
       query: () => ({
-        url: "/boards",
+        url: "/api/boards",
         method: "GET",
       }),
       providesTags: ["Boards"],
     }),
     getBoard: builder.query<Board, string>({
-      query: (id) => `/boards/${id}`,
+      query: (id) => `/api/boards/${id}`,
       providesTags: (_, __, id) => [{ type: "Boards", id }],
     }),
     addBoard: builder.mutation<Board, Partial<Board>>({
       query: (newBoard) => ({
-        url: "/boards",
+        url: "/api/boards",
         method: "POST",
         body: newBoard,
       }),
