@@ -60,7 +60,7 @@ export const boardApi = createApi({
       invalidatesTags: ["Boards"],
     }),
     getColumns: builder.query<Column[], string>({
-      query: (boardId) => `/boards/${boardId}/columns`,
+      query: (boardId) => `/api/boards/${boardId}/columns`,
       providesTags: ["Columns"],
     }),
     deleteColumn: builder.mutation<
