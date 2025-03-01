@@ -46,7 +46,7 @@ export const boardApi = createApi({
       { id: string; updateBoard: Partial<Board> }
     >({
       query: ({ id, updateBoard }) => ({
-        url: `/boards/${id}`,
+        url: `/api/boards/${id}`,
         method: "PUT",
         body: updateBoard,
       }),
@@ -54,7 +54,7 @@ export const boardApi = createApi({
     }),
     deleteBoard: builder.mutation<Board, { id: string }>({
       query: ({ id }) => ({
-        url: `/boards/${id}`,
+        url: `/api/boards/${id}`,
         method: "DELETE",
       }),
       invalidatesTags: ["Boards"],
@@ -68,7 +68,7 @@ export const boardApi = createApi({
       { boardId: string; columnId: string }
     >({
       query: ({ boardId, columnId }) => ({
-        url: `/boards/${boardId}/columns/${columnId}`,
+        url: `/api/boards/${boardId}/columns/${columnId}`,
         method: "DELETE",
       }),
       invalidatesTags: ["Columns", "Boards"],
@@ -78,7 +78,7 @@ export const boardApi = createApi({
       { boardId: string; columnId: string; editedTitle: string }
     >({
       query: ({ boardId, columnId, editedTitle }) => ({
-        url: `/boards/${boardId}/columns/${columnId}`,
+        url: `/api/boards/${boardId}/columns/${columnId}`,
         method: "PATCH",
         body: { title: editedTitle },
       }),
@@ -89,7 +89,7 @@ export const boardApi = createApi({
       { boardId: string; columnId: string; newTask: Task }
     >({
       query: ({ boardId, columnId, newTask }) => ({
-        url: `/boards/${boardId}/columns/${columnId}/tasks`,
+        url: `/api/boards/${boardId}/columns/${columnId}/tasks`,
         method: "POST",
         body: { newTask },
       }),
@@ -97,7 +97,7 @@ export const boardApi = createApi({
     }),
     getColTask: builder.query<Task[], { boardId: string; columnId: string }>({
       query: ({ boardId, columnId }) =>
-        `/boards/${boardId}/columns/${columnId}/tasks`,
+        `/api/boards/${boardId}/columns/${columnId}/tasks`,
       providesTags: ["Tasks"],
     }),
     deleteTask: builder.mutation<
@@ -105,7 +105,7 @@ export const boardApi = createApi({
       { boardId: string; columnId: string; taskId: string }
     >({
       query: ({ boardId, columnId, taskId }) => ({
-        url: `boards/${boardId}/columns/${columnId}/tasks/${taskId}`,
+        url: `/api/boards/${boardId}/columns/${columnId}/tasks/${taskId}`,
         method: "DELETE",
       }),
       invalidatesTags: ["Tasks", "Columns"],
@@ -120,7 +120,7 @@ export const boardApi = createApi({
       }
     >({
       query: ({ boardId, columnId, taskId, updatedTask }) => ({
-        url: `boards/${boardId}/columns/${columnId}/tasks/${taskId}`,
+        url: `/api/boards/${boardId}/columns/${columnId}/tasks/${taskId}`,
         method: "PUT",
         body: { updatedTask },
       }),
@@ -131,7 +131,7 @@ export const boardApi = createApi({
       { boardId: string; columnId: string; taskId: string; subTaskId: string }
     >({
       query: ({ boardId, columnId, taskId, subTaskId }) => ({
-        url: `/boards/${boardId}/columns/${columnId}/tasks/${taskId}/subTasks/${subTaskId}`,
+        url: `/api/boards/${boardId}/columns/${columnId}/tasks/${taskId}/subTasks/${subTaskId}`,
         method: "PATCH",
       }),
       invalidatesTags: ["Tasks"],
