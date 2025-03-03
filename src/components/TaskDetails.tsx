@@ -30,7 +30,6 @@ export default function TaskDetails({ task, columnId, close }: Props) {
   const [localTask, setLocalTask] = useState(task);
 
   const activeBoard = useSelector(selectActiveBoard);
-  console.log(task);
 
   const [updateSubtask] = useUpdateSubTaskMutation();
 
@@ -89,12 +88,16 @@ export default function TaskDetails({ task, columnId, close }: Props) {
         taskId: task._id ?? "",
         subTaskId: subTaskId,
       });
-      setLocalTask((prevTask) => ({
-        ...prevTask,
-        subTasks: prevTask.subTasks.map((st) =>
-          st.id === subTaskId ? { ...st, done: !st.done } : st
-        ),
-      }));
+      setLocalTask((prevTask) =>
+        prevTask
+          ? {
+              ...prevTask,
+              subTasks: prevTask.subTasks.map((st) =>
+                st.id === subTaskId ? { ...st, done: !st.done } : st
+              ),
+            }
+          : prevTask
+      );
       toast.success("Subtask updated successfully!");
     } catch (error) {
       console.error("Failed to update subtask:", error);
@@ -114,7 +117,7 @@ export default function TaskDetails({ task, columnId, close }: Props) {
               {task.title}
             </span>
           </div>
-          <div className="text-sm flex-flex-col">
+          <div className="text-sm flex flex-col">
             <p className=" opacity-65 text-slate-900 font-semibold text-sm">
               Deadline
             </p>
