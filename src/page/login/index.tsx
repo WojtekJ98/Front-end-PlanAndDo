@@ -66,7 +66,22 @@ export default function Login() {
         </header>
         <main>
           <div className="flex min-h-full flex-1 flex-col justify-center px-6 py-12 lg:px-8">
-            <div className="sm:mx-auto sm:w-full sm:max-w-sm">
+            <div className="sm:mx-auto sm:w-full sm:max-w-sm ">
+              <div className="bg-gray-200 p-4 rounded-lg w-72 mx-auto">
+                <p className="text-center font-lg text-seccondColor font-semibold">
+                  If you want to try this app:
+                </p>
+                <div>
+                  <div className="flex justify-start items-center gap-2">
+                    <span>Login:</span>
+                    <span>runboyy2024@gmail.com</span>
+                  </div>
+                  <div className="flex justify-start items-center gap-2">
+                    <span>Password:</span>
+                    <span>PlanDo2025</span>
+                  </div>
+                </div>
+              </div>
               <h2 className="mt-10 text-center text-2xl/9 font-bold tracking-tight text-white">
                 Sign in to your account
               </h2>
