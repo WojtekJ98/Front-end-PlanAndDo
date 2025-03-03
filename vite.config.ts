@@ -10,6 +10,8 @@ export default defineConfig({
     },
   },
   server: {
-    historyApiFallback: true,
+    fs: {
+      allow: ["./"],
+    },
   },
 });
