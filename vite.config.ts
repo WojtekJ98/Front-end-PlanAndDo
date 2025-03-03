@@ -9,4 +9,7 @@ export default defineConfig({
       external: [/\/tests\//],
     },
   },
+  server: {
+    historyApiFallback: true,
+  },
 });
