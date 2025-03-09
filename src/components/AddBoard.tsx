@@ -4,8 +4,7 @@ import { IoMdAddCircleOutline } from "react-icons/io";
 import { Column } from "../types";
 import * as Yup from "yup";
 import { useDeleteColumnMutation } from "../redux/slices/boardSlice";
-import { toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+import { useToast } from "../hooks/useToast";
 
 interface AddBoardFormValues {
   boardTitle: string;
@@ -31,6 +30,7 @@ export default function AddBoard({
   },
 }: AddBoardProps) {
   const [deleteColumn] = useDeleteColumnMutation();
+  const { success, errorToast } = useToast();
 
   const handleDeleteColumn = async (
     board: string,
@@ -47,10 +47,33 @@ export default function AddBoard({
 
       console.log(`Column ${columnId} deleted successfully.`);
       remove(index);
-      toast.success("Column delete successfully!");
+      success("Column delete successfully!");
     } catch (error) {
       console.error("Error deleting column:", error);
-      toast.error("Failed to column delete.");
+      errorToast("Failed to column delete.");
+    }
+  };
+  const handleSubmit = (values: AddBoardFormValues) => {
+    const { boardTitle, columns } = values;
+
+    onSubmit({
+      boardTitle,
+      columns: columns.map((col) => ({
+        _id: col._id,
+        title: col.title,
+      })),
+    });
+  };
+
+  const handleRemoveColumn = (
+    column: Column,
+    remove: (index: number) => void,
+    index: number
+  ) => {
+    if (column._id) {
+      handleDeleteColumn(board, column._id, remove, index);
+    } else {
+      remove(index);
     }
   };
 
@@ -63,17 +86,7 @@ export default function AddBoard({
         enableReinitialize
         validationSchema={validationValues}
         initialValues={initialValues}
-        onSubmit={(values) => {
-          const { boardTitle, columns } = values;
-
-          onSubmit({
-            boardTitle,
-            columns: columns.map((col) => ({
-              _id: col._id,
-              title: col.title,
-            })),
-          });
-        }}>
+        onSubmit={handleSubmit}>
         {({ values }) => (
           <Form>
             <div className="space-y-2 flex flex-col pb-2 ">
@@ -83,7 +96,7 @@ export default function AddBoard({
                 required
                 placeholder="e.g. App project or Selling plan"
                 name="boardTitle"
-                className="bg-gray-700 px-3 py-1 rounded-md border-[1px] border-seccondColor outline outline-1 outline-seccondColor placeholder:text-white focus:outline-2 focus:-outline-offset-2 sm:text-sm/6"
+                className="bg-gray-700 px-3 py-1 rounded-md border border-seccondColor outline outline-1 outline-seccondColor placeholder:text-white focus:outline-2 focus:-outline-offset-2 sm:text-sm/6"
               />
               <ErrorMessage
                 name="boardTitle"
@@ -103,7 +116,7 @@ export default function AddBoard({
                         className="flex justify-between items-center gap-2">
                         <Field
                           required
-                          className="bg-gray-700 flex-1 px-3 py-1  rounded-md border-[1px] border-seccondColor outline outline-1 outline-seccondColor placeholder:text-white focus:outline-2 focus:-outline-offset-2 sm:text-sm/6"
+                          className="bg-gray-700 flex-1 px-3 py-1  rounded-md border border-seccondColor outline outline-1 outline-seccondColor placeholder:text-white focus:outline-2 focus:-outline-offset-2 sm:text-sm/6"
                           name={`columns[${index}].title`}
                           value={column.title}
                           placeholder="e.g. Planning, Shoping"
@@ -111,16 +124,7 @@ export default function AddBoard({
                         <button
                           onClick={(e) => {
                             e.preventDefault();
-                            if (column._id) {
-                              handleDeleteColumn(
-                                board,
-                                column._id,
-                                remove,
-                                index
-                              );
-                            } else {
-                              remove(index);
-                            }
+                            handleRemoveColumn(column, remove, index);
                           }}
                           className=" text-white hover:text-red-500 duration-200">
                           <IoIosCloseCircleOutline className="text-2xl font-semibold  " />

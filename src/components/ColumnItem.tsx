@@ -13,11 +13,10 @@ import { MdBackHand } from "react-icons/md";
 import { CiBookmarkCheck } from "react-icons/ci";
 import TaskDetails from "./TaskDetails";
 import AddTaskHandler from "./AddTask";
-import { toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { DotLoader } from "react-spinners";
+import { useToast } from "../hooks/useToast";
 
 interface Props {
   column: Column;
@@ -32,6 +31,8 @@ export default function ColumnItem({ column, board }: Props) {
   const [isDeleteModalOpen, setDeleteModalOpen] = useState(false);
   const [isTaskModalOpen, setTaskModalOpen] = useState(false);
   const [isModalOpen, setModalOpen] = useState(false);
+
+  const { success, errorToast } = useToast();
 
   const [editColumnTitle] = useEditColumnTitleMutation();
   const {
@@ -63,11 +64,11 @@ export default function ColumnItem({ column, board }: Props) {
         columnId,
         editedTitle,
       }).unwrap();
-      toast.success("Column title updated successfully!");
+      success("Column title updated successfully!");
       setIsEditColumn(false);
     } catch (error) {
       console.error("Error editing column title:", error);
-      toast.error("Failed to update column title.");
+      errorToast("Failed to update column title.");
     }
   };
 
@@ -100,7 +101,7 @@ export default function ColumnItem({ column, board }: Props) {
         <div className="flex justify-between items-center">
           {isEditColumn && selectColumn?._id === column._id ? (
             <input
-              className="bg-slate-900 border-[1px] border-seccondColor mr-4 rounded-md text-white px-2 w-24 py-1 outline outline-1 outline-seccondColor focus:outline-2 focus:-outline-offset-2 sm:text-sm/6"
+              className="bg-slate-900 border border-seccondColor mr-4 rounded-md text-white px-2 w-24 py-1 outline outline-1 outline-seccondColor focus:outline-2 focus:-outline-offset-2 sm:text-sm/6"
               type="text"
               value={editedTitle}
               onChange={editColumnChange}

@@ -1,11 +1,10 @@
+import { useToast } from "../hooks/useToast";
 import {
   useDeleteBoardMutation,
   useDeleteColumnMutation,
   useDeleteTaskMutation,
 } from "../redux/slices/boardSlice";
 import { Board, Column, Task } from "../types";
-import { toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
 
 interface Props {
   item: Board | Column | Task;
@@ -27,31 +26,32 @@ export default function DeleteModal({
   const [deleteBoard] = useDeleteBoardMutation();
   const [deleteColumn] = useDeleteColumnMutation();
   const [deleteTask] = useDeleteTaskMutation();
+  const { success, errorToast } = useToast();
 
   const handleDelete = async () => {
     if (!item._id) {
-      toast.error("ID is required to delete a objcet.");
+      errorToast("ID is required to delete a objcet.");
       return;
     }
     try {
       if (type === "board") {
         await deleteBoard({ id: item._id }).unwrap();
 
-        toast.success("Board delete successfully!");
+        success("Board delete successfully!");
       } else if (type === "column") {
         if (!boardId) {
-          toast.error("Board ID is required to delete a column.");
+          errorToast("Board ID is required to delete a column.");
           return;
         }
         await deleteColumn({ boardId, columnId: item._id }).unwrap();
-        toast.success("Column delete successfully!");
+        success("Column delete successfully!");
       } else if (type === "task") {
         if (!boardId || !columnId) {
-          toast.error("Board ID and Column ID are required to delete a task.");
+          errorToast("Board ID and Column ID are required to delete a task.");
           return;
         }
         await deleteTask({ boardId, columnId, taskId: item._id }).unwrap();
-        toast.success("Task delete successfully!");
+        success("Task delete successfully!");
       }
       if (close) {
         close();
@@ -59,7 +59,7 @@ export default function DeleteModal({
       setCloseModal(false);
     } catch (error) {
       console.error(`Error deleting ${type}:`, error);
-      toast.error(`Error deleting ${type}:`);
+      errorToast(`Error deleting ${type}:`);
     }
   };
 

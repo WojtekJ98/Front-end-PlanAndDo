@@ -14,9 +14,8 @@ import DeleteModal from "./DeleteModal";
 import { FaOutdent, FaIndent } from "react-icons/fa";
 import { useDispatch } from "react-redux";
 import { selectActiveBoard } from "../redux/selectors/selectActiveBoard";
-import { toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
 import { DotLoader } from "react-spinners";
+import { useToast } from "../hooks/useToast";
 
 interface AsideBarProps {
   isHidden: boolean;
@@ -31,6 +30,8 @@ export default function AsideBar({ isHidden, setIsHidden }: AsideBarProps) {
   const [isEditMode, setEditMode] = useState(false);
   const [editBoardData, setEditBoardData] = useState<Board | null>(null);
   const dispatch = useDispatch();
+
+  const { success, errorToast } = useToast();
 
   const [addBoard] = useAddBoardMutation();
   const [editBoard] = useEditBoardMutation();
@@ -62,10 +63,10 @@ export default function AsideBar({ isHidden, setIsHidden }: AsideBarProps) {
           },
         }).unwrap();
         refetch();
-        toast.success("Board edited successfully!");
+        success("Board edited successfully!");
       } catch (error) {
         console.error(error);
-        toast.error("Failed to edit board.");
+        errorToast("Failed to edit board.");
       }
     } else {
       try {
@@ -74,10 +75,10 @@ export default function AsideBar({ isHidden, setIsHidden }: AsideBarProps) {
           columns: values.columns.map((col) => ({ title: col.title })),
         }).unwrap();
         refetch();
-        toast.success("Board added successfully!");
+        success("Board added successfully!");
       } catch (error) {
         console.error(error);
-        toast.error("Failed to add board.");
+        errorToast("Failed to add board.");
       }
     }
     setModalOpen(false);

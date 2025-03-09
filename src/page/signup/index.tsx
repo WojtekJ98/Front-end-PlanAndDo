@@ -4,8 +4,7 @@ import * as Yup from "yup";
 import axios from "axios";
 import { useState } from "react";
 import { FcTodoList } from "react-icons/fc";
-import { toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+import { useToast } from "../../hooks/useToast";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
@@ -46,6 +45,7 @@ export default function SignUp() {
     surname: "",
   };
 
+  const { success, errorToast } = useToast();
   const handleSubmit = async (
     values: SignUpValues,
     { setSubmitting, resetForm }: FormikHelpers<SignUpValues>
@@ -57,7 +57,7 @@ export default function SignUp() {
       );
       if (response.status === 201 || response.status === 200) {
         console.log("User created successfully!", response.data.message);
-        toast.success("User created successfully!");
+        success("User created successfully!");
         setErrorMessage("");
         resetForm();
       } else {
@@ -65,7 +65,7 @@ export default function SignUp() {
       }
     } catch (error: any) {
       setErrorMessage(error.response?.data?.error || "Something went wrong");
-      toast.error("Something went wrong");
+      errorToast("Something went wrong");
     } finally {
       setSubmitting(false);
     }

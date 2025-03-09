@@ -11,9 +11,8 @@ import {
   useGetBoardQuery,
   useGetColumnsQuery,
 } from "../redux/slices/boardSlice";
-import { toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
 import { DotLoader } from "react-spinners";
+import { useToast } from "../hooks/useToast";
 
 export interface AddTaskFormValues {
   id?: string;
@@ -54,6 +53,7 @@ export default function AddTaskHandler({
   },
 }: Props) {
   const activeBoard = useSelector(selectActiveBoard) ?? "";
+  const { success, errorToast } = useToast();
 
   const { data: board, isLoading, error } = useGetBoardQuery(activeBoard);
 
@@ -78,13 +78,13 @@ export default function AddTaskHandler({
     try {
       if (!values.columnId) {
         console.error("Column ID is required to add a task.");
-        toast.error("Column ID is required to add a task");
+        errorToast("Column ID is required to add a task");
         return;
       }
       console.log(updatedTask);
 
       if (!board?._id) {
-        toast.error("Board ID is missing.");
+        errorToast("Board ID is missing.");
         return;
       }
       await addTask({
@@ -94,10 +94,10 @@ export default function AddTaskHandler({
       });
       refetchTasks?.();
       onClose?.();
-      toast.success("Task added successfully!");
+      success("Task added successfully!");
     } catch (error) {
       console.error("Failed to add task:", error);
-      toast.error("Failed to add task.");
+      errorToast("Failed to add task.");
     }
   };
 
@@ -117,7 +117,7 @@ export default function AddTaskHandler({
   }
 
   if (error) {
-    return <p>Error loading boards.</p>;
+    return <p>Please select the board.</p>;
   }
 
   return (
@@ -139,7 +139,7 @@ export default function AddTaskHandler({
                     required
                     placeholder="e.g. Planing the header section"
                     name="title"
-                    className="bg-gray-700 px-3 py-1 rounded-md border-[1px] border-seccondColor outline outline-1 outline-seccondColor placeholder:text-white focus:outline-2 focus:-outline-offset-2 sm:text-sm/6"
+                    className="bg-gray-700 px-3 py-1 rounded-md border border-seccondColor outline outline-1 outline-seccondColor placeholder:text-white focus:outline-2 focus:-outline-offset-2 sm:text-sm/6"
                   />
                   <ErrorMessage
                     name="title"
@@ -153,7 +153,7 @@ export default function AddTaskHandler({
                     as="textarea"
                     placeholder="e.g. Add a Logo and the Nav"
                     name="description"
-                    className="bg-gray-700 px-3 py-1 rounded-md border-[1px] border-seccondColor outline outline-1 outline-seccondColor placeholder:text-white focus:outline-2 focus:-outline-offset-2 sm:text-sm/6"
+                    className="bg-gray-700 px-3 py-1 rounded-md border border-seccondColor outline outline-1 outline-seccondColor placeholder:text-white focus:outline-2 focus:-outline-offset-2 sm:text-sm/6"
                   />
                   <ErrorMessage
                     name="description"
@@ -168,7 +168,7 @@ export default function AddTaskHandler({
                       selected={values.deadline}
                       onChange={(date) => setFieldValue("deadline", date)}
                       dateFormat="dd.MM.yyyy"
-                      className="bg-gray-700 px-3 py-1 rounded-md border-[1px] border-seccondColor outline outline-1 outline-seccondColor placeholder:text-white focus:outline-2 focus:-outline-offset-2 sm:text-sm/6"
+                      className="bg-gray-700 px-3 py-1 rounded-md border border-seccondColor outline outline-1 outline-seccondColor placeholder:text-white focus:outline-2 focus:-outline-offset-2 sm:text-sm/6"
                       placeholderText="Select a date"
                     />
                   </div>
@@ -179,7 +179,7 @@ export default function AddTaskHandler({
                     <Field
                       as="select"
                       name="status"
-                      className="bg-gray-700 px-3 py-1 rounded-md border-[1px] border-seccondColor outline outline-1 outline-seccondColor placeholder:text-white focus:outline-2 focus:-outline-offset-2 sm:text-sm/6">
+                      className="bg-gray-700 px-3 py-1 rounded-md border border-seccondColor outline outline-1 outline-seccondColor placeholder:text-white focus:outline-2 focus:-outline-offset-2 sm:text-sm/6">
                       <option value="todo">Todo</option>
                       <option value="in-progress">In-progress</option>
                       <option value="done">Done</option>
@@ -190,7 +190,7 @@ export default function AddTaskHandler({
                     <Field
                       as="select"
                       name="piority"
-                      className="bg-gray-700 px-3 py-1 rounded-md border-[1px] border-seccondColor outline outline-1 outline-seccondColor placeholder:text-white focus:outline-2 focus:-outline-offset-2 sm:text-sm/6">
+                      className="bg-gray-700 px-3 py-1 rounded-md border border-seccondColor outline outline-1 outline-seccondColor placeholder:text-white focus:outline-2 focus:-outline-offset-2 sm:text-sm/6">
                       <option value="low">Low</option>
                       <option value="medium">Medium</option>
                       <option value="high">High</option>
@@ -207,7 +207,7 @@ export default function AddTaskHandler({
                             key={sub.id || `new-subtask-${index}`}
                             className="flex justify-between items-center gap-2">
                             <Field
-                              className="bg-gray-700 flex-1 px-3 py-1  rounded-md border-[1px] border-seccondColor outline outline-1 outline-seccondColor placeholder:text-white focus:outline-2 focus:-outline-offset-2 sm:text-sm/6"
+                              className="bg-gray-700 flex-1 px-3 py-1  rounded-md border border-seccondColor outline outline-1 outline-seccondColor placeholder:text-white focus:outline-2 focus:-outline-offset-2 sm:text-sm/6"
                               name={`subTasks[${index}].title`}
                               value={sub.title}
                               placeholder="e.g. Create a logo for the company"
@@ -240,7 +240,7 @@ export default function AddTaskHandler({
                       required
                       as="select"
                       name="columnId"
-                      className="bg-gray-700 px-3 py-1 rounded-md border-[1px] border-seccondColor outline outline-1 outline-seccondColor placeholder:text-white focus:outline-2 focus:-outline-offset-2 sm:text-sm/6">
+                      className="bg-gray-700 px-3 py-1 rounded-md border border-seccondColor outline outline-1 outline-seccondColor placeholder:text-white focus:outline-2 focus:-outline-offset-2 sm:text-sm/6">
                       <option value="" disabled>
                         Select a column
                       </option>

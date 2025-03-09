@@ -5,6 +5,7 @@ import axios from "axios";
 import { useState } from "react";
 import { useAuth } from "../../context/AuthProvider";
 import { FcTodoList } from "react-icons/fc";
+import { useToast } from "../../hooks/useToast";
 
 interface SignInValues {
   email: string;
@@ -26,6 +27,8 @@ const validationValues = Yup.object({
 export default function Login() {
   const { login } = useAuth();
 
+  const { success, errorToast } = useToast();
+
   const [errorMessage, setErrorMessage] = useState("");
   const initialValues: SignInValues = {
     email: "",
@@ -46,9 +49,11 @@ export default function Login() {
       );
       const { token } = response.data;
       console.log("User login Successfuly!", response.data);
+      success("User login Successfuly!");
       login(token);
     } catch (error: any) {
       setErrorMessage(error.response?.data?.error || "Something went wrong");
+      errorToast("Something went wrong");
     } finally {
       setSubmitting(false);
     }

@@ -50,7 +50,7 @@ export const boardApi = createApi({
         method: "PUT",
         body: updateBoard,
       }),
-      invalidatesTags: ["Boards"],
+      invalidatesTags: ["Boards", "Columns"],
     }),
     deleteBoard: builder.mutation<Board, { id: string }>({
       query: ({ id }) => ({

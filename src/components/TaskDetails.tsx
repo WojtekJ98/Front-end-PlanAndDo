@@ -12,8 +12,7 @@ import {
 import DeleteModal from "./DeleteModal";
 import { useSelector } from "react-redux";
 import { selectActiveBoard } from "../redux/selectors/selectActiveBoard";
-import { toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+import { useToast } from "../hooks/useToast";
 
 interface Props {
   task: Task;
@@ -34,6 +33,7 @@ export default function TaskDetails({ task, columnId, close }: Props) {
   const [updateSubtask] = useUpdateSubTaskMutation();
 
   const [editTask] = useEditTaskMutation();
+  const { success, errorToast } = useToast();
 
   const handleUpdateTask = async (values: Task) => {
     try {
@@ -54,7 +54,7 @@ export default function TaskDetails({ task, columnId, close }: Props) {
             subTasks: values.subTasks,
           },
         });
-        toast.success("Task edited successfully!");
+        success("Task edited successfully!");
 
         close();
 
@@ -63,7 +63,7 @@ export default function TaskDetails({ task, columnId, close }: Props) {
       }
     } catch (error) {
       console.error("Failed to edit task:", error);
-      toast.error("Failed to edit task.");
+      errorToast("Failed to edit task.");
     }
   };
   const handleEditTask = (task: Task) => {
@@ -98,10 +98,10 @@ export default function TaskDetails({ task, columnId, close }: Props) {
             }
           : prevTask
       );
-      toast.success("Subtask updated successfully!");
+      success("Subtask updated successfully!");
     } catch (error) {
       console.error("Failed to update subtask:", error);
-      toast.error("Failed to update subtask.");
+      errorToast("Failed to update subtask.");
     }
   };
 

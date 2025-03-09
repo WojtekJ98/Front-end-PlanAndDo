@@ -12,9 +12,8 @@ import {
 } from "../redux/slices/boardSlice";
 import { DndContext, closestCorners } from "@dnd-kit/core";
 import { SortableContext, arrayMove } from "@dnd-kit/sortable";
-import { toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
 import { DotLoader } from "react-spinners";
+import { useToast } from "../hooks/useToast";
 
 interface BoardViewProps {
   isAsideHidden: boolean;
@@ -22,6 +21,7 @@ interface BoardViewProps {
 
 export default function BoardView({ isAsideHidden }: BoardViewProps) {
   const [isModalOpen, setModalOpen] = useState(false);
+  const { success, errorToast } = useToast();
 
   const [editBoard] = useEditBoardMutation();
 
@@ -31,57 +31,48 @@ export default function BoardView({ isAsideHidden }: BoardViewProps) {
   );
 
   const activeB = boards.find((board) => board._id === activeBoard);
-
-  const { data: columns = [], refetch: refetchColumns } = useGetColumnsQuery(
-    activeB?._id ?? "",
-    {
-      skip: !activeB,
-    }
-  );
-  useEffect(() => {
-    if (activeB) {
-      refetchColumns();
-    }
-  }, [activeB, refetchColumns]);
+  const { data: columns = [] } = useGetColumnsQuery(activeB?._id ?? "", {
+    skip: !activeB,
+  });
 
   const handleAddColumnToBoard = async (values: {
     boardTitle: string;
-    columns: { id?: string; title: string }[];
+    columns: { _id?: string; title: string }[];
   }) => {
     if (!activeB?._id) {
-      toast.error("No active board selected.");
+      errorToast("No active board selected.");
       return;
     }
 
     try {
+      const updatedColumns = values.columns.map((col) => ({
+        _id: col._id || undefined,
+        title: col.title,
+      }));
       await editBoard({
         id: activeB?._id,
         updateBoard: {
           title: values.boardTitle,
-          columns: values.columns.map((col) => ({
-            ...(col.id ? { _id: col.id } : {}),
-            title: col.title,
-          })),
+          columns: updatedColumns,
         },
       }).unwrap();
       refetch();
-      refetchColumns();
-      toast.success("Board edit successfully!");
+      success("Column added successfully!");
     } catch (error) {
       console.error("Failed to edit board:", error);
-      toast.error("Failed to edit board!");
+      errorToast("Failed to add column!");
     }
 
     setModalOpen(false);
   };
+
   const [optimisticColumns, setOptimisticColumns] = useState<Column[]>([]);
 
   useEffect(() => {
     if (activeB) {
-      setOptimisticColumns(activeB.columns || []);
-      refetchColumns();
+      setOptimisticColumns(columns || []);
     }
-  }, [activeB, refetchColumns]);
+  }, [activeB, columns]);
 
   const handleDragEnd = async (event: any) => {
     const { active, over } = event;
@@ -101,17 +92,17 @@ export default function BoardView({ isAsideHidden }: BoardViewProps) {
         newIndex
       );
       setOptimisticColumns(updatedColumns);
+
       try {
         await editBoard({
           id: activeB?._id,
           updateBoard: { title: activeB?.title, columns: updatedColumns },
         }).unwrap();
         refetch();
-        refetchColumns();
-        toast.success("Board reorder successfully!");
+        success("Board reorder successfully!");
       } catch (error) {
         console.error("Failed to reorder board:", error);
-        toast.error("Failed to reorder board!");
+        errorToast("Failed to reorder board!");
         setOptimisticColumns(columns);
       }
     }

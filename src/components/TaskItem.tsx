@@ -11,7 +11,7 @@ export default function TaskItem({ task, onClick }: Props) {
   const totalSubtasks = task.subTasks.length;
 
   return (
-    <div className="border-[1px] my-3 p-2 rounded-lg border-slate-700 border-l-indigo-500 border-l-[2px] cursor-pointer shadow-gray-600 shadow-md duration-200 hover:shadow-none">
+    <div className="border my-3 p-2 rounded-lg border-slate-700 border-l-indigo-500 border-l-[2px] cursor-pointer shadow-gray-600 shadow-md duration-200 hover:shadow-none">
       <div className="flex justify-between items-center pt-2 ">
         <h2 className="text-lg font-semibold text-seccondColor">
           {task.title}
@@ -33,7 +33,7 @@ export default function TaskItem({ task, onClick }: Props) {
             ({completedSubtasks} of {totalSubtasks})
           </span>
         </div>
-        <div className="flex justify-between items-start text-sm border-[1px] p-1 rounded-lg border-slate-700 shadow-sm shadow-slate-700">
+        <div className="flex justify-between items-start text-sm border p-1 rounded-lg border-slate-700 shadow-sm shadow-slate-700">
           <div className="flex flex-col items-center flex-1">
             <span className="text-sm font-semibold text-indigo-500">
               Urgency
